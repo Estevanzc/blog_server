@@ -3,15 +3,16 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class Post_view extends Model {
+  class User extends Model {
     static associate(models) {
     }
   }
-  Post_view.init({
-    name: DataTypes.STRING
+  User.init({
+    name: DataTypes.STRING,
+    email: DataTypes.STRING
   }, {
     sequelize,
-    modelName: 'Post_view',
+    modelName: 'User',
   });
-  return Post_view;
+  return User;
 };
