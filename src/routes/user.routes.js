@@ -10,3 +10,9 @@ router.get('/', userController.index);
 // router.delete('/:id', userController.destroy);
 
 module.exports = router;
+
+/*
+const authMiddleware = require('../middlewares/authMiddleware');
+
+router.get('/profile', authMiddleware, userController.profile);
+*/
