@@ -1,14 +1,23 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const uploadConfig = require('../config/upload');
+const upload = multer(uploadConfig);
 const { User } = require('../../models');
 
 module.exports = {
-  async index(req, res, next) {
+  async profile(req, res, next) {
     try {
-      const users = await User.findAll();
-      res.json(users);
+      let { id } = req.params
+      let user = await User.findByPk(id, {
+        attributes: { exclude: ['password'] }
+      });
+      if (!user) {
+        return res.status(404).json({ error: "User not found" })
+      }
+      return res.json(user)
     } catch (err) {
-      next(err);
+      next(err)
     }
   },
   async register(req, res, next) {
@@ -37,7 +46,6 @@ module.exports = {
       next(err);
     }
   },
-
   async login(req, res, next) {
     try {
       const { email, password } = req.body;
@@ -65,6 +73,74 @@ module.exports = {
           name: user.name,
           email: user.email
         }
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+  async update(req, res, next) {
+    try {
+      let { id, name, email, birth, description } = req.body
+      let user = await User.findByPk(id);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" })
+      }
+      await user.update({
+        name,
+        email,
+        birth,
+        description
+      });
+      return res.json({
+        id: user.id
+      });
+    } catch (err) {
+      next(err)
+    }
+  },
+  async updatePhoto(req, res, next) {
+    try {
+      const user_id = req.user.id;
+      const user = await User.findByPk(user_id);
+
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      await user.update({
+        photo: `/uploads/${req.file.filename}`
+      });
+
+      res.json({
+        photo: user.photo
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+  async updateBanner(req, res, next) {
+    try {
+      const user_id = req.user.id;
+      const user = await User.findByPk(user_id);
+
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      await user.update({
+        banner: `/uploads/${req.file.filename}`
+      });
+
+      res.json({
+        banner: user.banner
       });
     } catch (err) {
       next(err);
