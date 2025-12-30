@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const uploadConfig = require('../config/upload');
 const upload = multer(uploadConfig);
+const fs = require('fs/promises');
+const path = require('path');
 const { User } = require('../../models');
 
 module.exports = {
@@ -111,6 +113,21 @@ module.exports = {
         return res.status(400).json({ error: 'No file uploaded' });
       }
 
+      if (user.photo) {
+        const photoPath = path.resolve(
+          __dirname,
+          '..',
+          '..',
+          '..',
+          user.photo.replace('/', '')
+        );
+
+        try {
+          await fs.unlink(photoPath);
+        } catch (err) {
+        }
+      }
+
       await user.update({
         photo: `/uploads/${req.file.filename}`
       });
@@ -135,6 +152,21 @@ module.exports = {
         return res.status(400).json({ error: 'No file uploaded' });
       }
 
+      if (user.banner) {
+        const bannerPath = path.resolve(
+          __dirname,
+          '..',
+          '..',
+          '..',
+          user.banner.replace('/', '')
+        );
+
+        try {
+          await fs.unlink(bannerPath);
+        } catch (err) {
+        }
+      }
+
       await user.update({
         banner: `/uploads/${req.file.filename}`
       });
@@ -146,4 +178,49 @@ module.exports = {
       next(err);
     }
   },
+  async destroy(req, res, next) {
+    try {
+      const { id } = req.params;
+
+      const user = await User.findByPk(id);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      if (user.photo) {
+        const photoPath = path.resolve(
+          __dirname,
+          '..',
+          '..',
+          '..',
+          user.photo.replace('/', '')
+        );
+
+        try {
+          await fs.unlink(photoPath);
+        } catch (err) {
+        }
+      }
+      if (user.banner) {
+        const bannerPath = path.resolve(
+          __dirname,
+          '..',
+          '..',
+          '..',
+          user.banner.replace('/', '')
+        );
+
+        try {
+          await fs.unlink(bannerPath);
+        } catch (err) {
+        }
+      }
+
+      await user.destroy();
+
+      return res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
+  }
 };

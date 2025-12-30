@@ -3,11 +3,13 @@ const userController = require('../controllers/userController');
 
 const router = express.Router();
 
-router.get('/', userController.index);
-// router.get('/:id', userController.show);
-// router.post('/', userController.store);
-// router.put('/:id', userController.update);
-// router.delete('/:id', userController.destroy);
+router.get('/profile/:id', userController.profile);
+router.post('/register', userController.register);
+router.post('/login', userController.login);
+router.put('/update/photo', userController.updatePhoto);
+router.put('/update/banner', userController.updateBanner);
+router.put('/update', userController.update);
+router.delete('/:id', userController.destroy);
 
 module.exports = router;
 
