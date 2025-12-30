@@ -6,6 +6,7 @@ const upload = multer(uploadConfig);
 const fs = require('fs/promises');
 const path = require('path');
 const { User } = require('../../models');
+const controller = require('../controllers/controller');
 
 module.exports = {
   async profile(req, res, next) {
@@ -93,9 +94,7 @@ module.exports = {
         birth,
         description
       });
-      return res.json({
-        id: user.id
-      });
+      return res.status(202).send();
     } catch (err) {
       next(err)
     }
@@ -113,28 +112,9 @@ module.exports = {
         return res.status(400).json({ error: 'No file uploaded' });
       }
 
-      if (user.photo) {
-        const photoPath = path.resolve(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          user.photo.replace('/', '')
-        );
+      await controller.imageUpload(user, req.file);
 
-        try {
-          await fs.unlink(photoPath);
-        } catch (err) {
-        }
-      }
-
-      await user.update({
-        photo: `/uploads/${req.file.filename}`
-      });
-
-      res.json({
-        photo: user.photo
-      });
+      return res.status(202).send();
     } catch (err) {
       next(err);
     }
@@ -152,28 +132,9 @@ module.exports = {
         return res.status(400).json({ error: 'No file uploaded' });
       }
 
-      if (user.banner) {
-        const bannerPath = path.resolve(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          user.banner.replace('/', '')
-        );
+      await controller.imageUpload(user, req.file, "banner");
 
-        try {
-          await fs.unlink(bannerPath);
-        } catch (err) {
-        }
-      }
-
-      await user.update({
-        banner: `/uploads/${req.file.filename}`
-      });
-
-      res.json({
-        banner: user.banner
-      });
+      return res.status(202).send();
     } catch (err) {
       next(err);
     }
