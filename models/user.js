@@ -3,14 +3,54 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  const User = sequelize.define('User', {
-    name: DataTypes.STRING,
+  class User extends Model {
+    static associate(models) {
+      User.hasMany(models.Preference, {foreignKey: "user_id"})
+      User.hasMany(models.Follower, {foreignKey: "user_id"})
+      User.hasMany(models.Member, {foreignKey: "user_id"})
+      User.hasMany(models.Post_view, {foreignKey: "user_id"})
+      User.hasMany(models.Post_like, {foreignKey: "user_id"})
+    }
+  }
+  User.init({
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+        len: [1, 100]
+      }
+    },
     email: {
       type: DataTypes.STRING,
-      unique: true
+      allowNull: false,
+      unique: true,
+      validate: {
+        isEmail: true,
+        len: [3, 254]
+      }
     },
-    password: DataTypes.STRING
+    password: DataTypes.STRING,
+    birth: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+    description: {
+      type: DataTypes.TEXT,
+    },
+    dark_mode: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    photo: {
+      type: DataTypes.STRING,
+    },
+    banner: {
+      type: DataTypes.STRING,
+    },
+  }, {
+    sequelize,
+    modelName: 'User',
   });
-
   return User;
 };
