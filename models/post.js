@@ -15,6 +15,7 @@ module.exports = (sequelize, DataTypes) => {
       Post.hasMany(models.Post_tag, {foreignKey:"post_id"})
       Post.hasMany(models.Post_content, {foreignKey:"post_id"})
       Post.hasMany(models.Post_like, {foreignKey:"post_id"})
+      Post.hasMany(models.Comment, {foreignKey:"post_id"})
     }
   }
   Post.init({
