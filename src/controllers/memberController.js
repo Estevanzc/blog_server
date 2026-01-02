@@ -11,29 +11,29 @@ module.exports = {
   async blog_members(req, res, next) {
     try {
       let { id } = req.params
-      let followers = await Follower.findAll({
+      let members = await Member.findAll({
         where: { user_id: id },
         include: [{
           model: User,
           as: 'user',
         }]
       });
-      return res.json(followers)
+      return res.json(members)
     } catch (err) {
       next(err);
     }
   },
-  async user_following(req, res, next) {
+  async user_membering(req, res, next) {
     try {
       let { id } = req.params
-      let following = await Follower.findAll({
+      let members = await Member.findAll({
         where: { user_id: id },
         include: [{
           model: Blog,
           as: 'blog',
         }]
       });
-      return res.json(following)
+      return res.json(members)
     } catch (err) {
       next(err);
     }
