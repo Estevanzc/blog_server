@@ -42,8 +42,12 @@ module.exports = {
             required: false
           },
           {
-            model: Tag,
+            model: Post_tag,
             as: 'tags',
+            attributes: [],
+            include: [
+              { model: Tag, as: 'tag', attributes: ['id', 'name'] }
+            ]
           },
           {
             model: Member,
@@ -118,6 +122,268 @@ module.exports = {
         relatedPosts
       });
 
+    } catch (err) {
+      next(err);
+    }
+  },
+  async home(req, res, next) {
+    try {
+      let trending_post = await Post.findAll({
+        where: {
+          createdAt: {
+            [Op.gte]: since
+          }
+        },
+        attributes: {
+          include: [
+            [Sequelize.fn('COUNT', Sequelize.fn('DISTINCT', Sequelize.col('views.id'))), 'viewCount'],
+            [Sequelize.fn('COUNT', Sequelize.fn('DISTINCT', Sequelize.col('likes.id'))), 'likeCount'],
+            [Sequelize.fn('COUNT', Sequelize.fn('DISTINCT', Sequelize.col('comments.id'))), 'commentCount'],
+          ]
+        },
+        include: [
+          {
+            model: View,
+            as: 'views',
+            attributes: [],
+            where: {
+              createdAt: { [Op.gte]: since }
+            },
+            required: false
+          },
+          {
+            model: Like,
+            as: 'likes',
+            attributes: [],
+            where: {
+              createdAt: { [Op.gte]: since }
+            },
+            required: false
+          },
+          {
+            model: Comment,
+            as: 'comments',
+            attributes: [],
+            where: {
+              createdAt: { [Op.gte]: since }
+            },
+            required: false
+          },
+          {
+            model: Member,
+            as: 'member',
+            include: [
+              {
+                model: User,
+                as: 'user',
+                attributes: ['id', 'username', 'avatar']
+              }
+            ]
+          }
+        ],
+        group: [
+          'Post.id',
+          'member.id',
+          'member->user.id'
+        ],
+        order: [[Sequelize.literal('(COUNT(DISTINCT views.id) * 1 + COUNT(DISTINCT likes.id) * 3 + COUNT(DISTINCT comments.id) * 2)'), 'DESC']],
+        limit: 1,
+        subQuery: false
+      });
+      const trendingTagIds = trending_post[0].tags.map(pt => pt.tag.id);
+      const relatedPosts = await Post.findAll({
+        where: {
+          id: { [Op.ne]: trending_post[0].id }
+        },
+        include: [
+          {
+            model: Post_tag,
+            as: 'tags',
+            attributes: [],
+            required: true,
+            include: [
+              {
+                model: Tag,
+                as: 'tag',
+                attributes: ['id', 'name'],
+                where: { id: { [Op.in]: trendingTagIds } }
+              }
+            ]
+          },
+          {
+            model: Member,
+            as: 'member',
+            include: [
+              { model: User, as: 'user' }
+            ]
+          }
+        ],
+        distinct: true,
+        limit: 5,
+        order: [['createdAt', 'DESC']]
+      });
+      const recentPosts = await Post.findAll({
+        include: [
+          {
+            model: Post_tag,
+            as: 'tags',
+            attributes: [],
+            include: [
+              { model: Tag, as: 'tag', attributes: ['id', 'name'] }
+            ]
+          },
+          {
+            model: Member,
+            as: 'member',
+            include: [
+              {
+                model: User,
+                as: 'user',
+                attributes: ['id', 'username', 'avatar']
+              }
+            ]
+          }
+        ],
+        order: [['createdAt', 'DESC']],
+        distinct: true
+      });
+      return res.json({
+        trending_post: trending_post[0],
+        relatedPosts: relatedPosts,
+        recentPosts: recentPosts
+      })
+    } catch (err) {
+      next(err);
+    }
+  },
+  async following_posts(req, res, next) {
+    try {
+      let { id } = req.params
+      const followedBlogs = await Follower.findAll({
+        where: { user_id: id },
+        attributes: ['blog_id']
+      });
+
+      const blogIds = followedBlogs.map(f => f.blog_id);
+
+      if (!blogIds.length) {
+        return res.json({ posts: [] });
+      }
+      const posts = await Post.findAll({
+        include: [
+          {
+            model: Blog,     // direct blog relationship
+            as: 'blog',
+            where: { id: { [Op.in]: blogIds } },
+            attributes: ['id', 'title', 'slug']
+          },
+          {
+            model: Post_tag,
+            as: 'tags',
+            attributes: [],
+            include: [
+              { model: Tag, as: 'tag', attributes: ['id', 'name'] }
+            ]
+          },
+          {
+            model: Member,
+            as: 'member',
+            include: [
+              { model: User, as: 'user', attributes: ['id', 'username', 'avatar'] }
+            ]
+          }
+        ],
+        order: [['createdAt', 'DESC']],
+        limit: 20,
+        distinct: true
+      });
+      return res.json(posts)
+    } catch (err) {
+      next(err);
+    }
+  },
+  async keywordPosts(req, res, next) {
+    try {
+      let { id } = req.params
+      const preferences = await Preference.findAll({
+        where: { user_id: id },
+        attributes: ['keyword']
+      });
+
+      const keywords = preferences.map(p => p.keyword);
+
+      if (!keywords.length) {
+        return res.json({ posts: [] });
+      }
+      const searchConditions = keywords.map(keyword => ({
+        [Op.or]: [
+          { title: { [Op.iLike]: `%${keyword}%` } },
+          { subtitle: { [Op.iLike]: `%${keyword}%` } },
+          { summary: { [Op.iLike]: `%${keyword}%` } }
+        ]
+      }));
+      const posts = await Post.findAll({
+        where: {
+          [Op.or]: searchConditions
+        },
+        include: [
+          {
+            model: Post_tag,
+            as: 'tags',
+            attributes: [],
+            include: [
+              { model: Tag, as: 'tag', attributes: ['id', 'name'] }
+            ]
+          },
+          {
+            model: Member,
+            as: 'member',
+            include: [
+              { model: User, as: 'user', attributes: ['id', 'username', 'avatar'] }
+            ]
+          }
+        ],
+        order: [['createdAt', 'DESC']],
+        distinct: true,
+        limit: 20
+      });
+      return res.json(posts);
+    } catch (err) {
+      next(err);
+    }
+  },
+  async postHistory(req, res, next) {
+    try {
+      let { id } = req.params
+      const viewedPosts = await Post_view.findAll({
+        where: { user_id: id },
+        include: [
+          {
+            model: Post,
+            as: 'post',
+            include: [
+              {
+                model: Post_tag,
+                as: 'tags',
+                attributes: [],
+                include: [
+                  { model: Tag, as: 'tag', attributes: ['id', 'name'] }
+                ]
+              },
+              {
+                model: Member,
+                as: 'member',
+                include: [
+                  { model: User, as: 'user', attributes: ['id', 'username', 'avatar'] }
+                ]
+              }
+            ]
+          }
+        ],
+        order: [['createdAt', 'DESC']],
+        limit: 50
+      });
+      return res.json(viewedPosts);
     } catch (err) {
       next(err);
     }
@@ -427,10 +693,21 @@ module.exports = {
       const recentPostsByTag = await Post.findAll({
         include: [
           {
-            model: Tag,
+            model: Post_tag,
             as: 'tags',
             where: { id: tagIds },
-            through: { attributes: [] }
+            attributes: [],
+            through: { attributes: [] },
+            include: [
+              {
+                model: Post_tag,
+                as: 'tags',
+                attributes: [],
+                include: [
+                  { model: Tag, as: 'tag', attributes: ['id', 'name'] }
+                ]
+              },
+            ]
           },
           {
             model: Member,
@@ -452,9 +729,12 @@ module.exports = {
       const recentPosts = await Post.findAll({
         include: [
           {
-            model: Tag,
+            model: Post_tag,
             as: 'tags',
-            through: { attributes: [] }
+            attributes: [],
+            include: [
+              { model: Tag, as: 'tag', attributes: ['id', 'name'] }
+            ]
           },
           {
             model: Member,
@@ -498,10 +778,21 @@ module.exports = {
         const posts = await Post.findAll({
           include: [
             {
-              model: Tag,
+              model: Post_tag,
               as: 'tags',
               where: { topic },
-              through: { attributes: [] }
+              attributes: [],
+              through: { attributes: [] },
+              include: [
+                {
+                  model: Post_tag,
+                  as: 'tags',
+                  attributes: [],
+                  include: [
+                    { model: Tag, as: 'tag', attributes: ['id', 'name'] }
+                  ]
+                },
+              ]
             },
             {
               model: Member,
@@ -529,9 +820,12 @@ module.exports = {
         },
         include: [
           {
-            model: Tag,
+            model: Post_tag,
             as: 'tags',
-            through: { attributes: [] }
+            attributes: [],
+            include: [
+              { model: Tag, as: 'tag', attributes: ['id', 'name'] }
+            ]
           },
           {
             model: Member,
