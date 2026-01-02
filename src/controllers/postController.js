@@ -1,5 +1,5 @@
 const controller = require('../controllers/controller');
-const { Blog, Member } = require('../../models');
+const { Blog, Post } = require('../../models');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const uploadConfig = require('../config/upload');
@@ -8,29 +8,16 @@ const fs = require('fs/promises');
 const path = require('path');
 
 module.exports = {
-  async index(req, res, next) {
+  async blog_posts(req, res, next) {
     try {
       let { id } = req.params
-      const blog = await Blog.findByPk(id, {
-        attributes: {
-          include: [
-            [Sequelize.fn('COUNT', Sequelize.col('posts.id')), 'postCount']
-          ]
+      let posts = await Post.findAll({
+        where: {
+          blog_id: id
         },
-        include: [{
-          model: Member,
-          as: 'members',
-          where: { role: 'ADMIN' },
-          include: [{
-            model: User,
-            as: 'user',
-          }]
-        }]
+        order: [['createdAt', 'DESC']]
       });
-      if (!blog) {
-        return res.status(404).json({ error: "Blog not found" })
-      }
-      return res.json(blog)
+      return res.json(posts)
     } catch (err) {
       next(err);
     }
