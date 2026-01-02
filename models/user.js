@@ -5,11 +5,11 @@ const {
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     static associate(models) {
-      User.hasMany(models.Preference, {foreignKey: "user_id"})
-      User.hasMany(models.Follower, {foreignKey: "user_id"})
-      User.hasMany(models.Member, {foreignKey: "user_id"})
-      User.hasMany(models.Post_view, {foreignKey: "user_id"})
-      User.hasMany(models.Post_like, {foreignKey: "user_id"})
+      User.hasMany(models.Preference, {foreignKey: "user_id", as: "preferences"})
+      User.hasMany(models.Follower, {foreignKey: "user_id", as: "followers"})
+      User.hasMany(models.Member, {foreignKey: "user_id", as: "members"})
+      User.hasMany(models.Post_view, {foreignKey: "user_id", as: "views"})
+      User.hasMany(models.Post_like, {foreignKey: "user_id", as: "likes"})
     }
   }
   User.init({

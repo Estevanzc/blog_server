@@ -1,14 +1,26 @@
-const bcrypt = require('bcryptjs');
+const controller = require('../controllers/controller');
+const { Blog } = require('../../models');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const uploadConfig = require('../config/upload');
 const upload = multer(uploadConfig);
 const fs = require('fs/promises');
 const path = require('path');
-const { User } = require('../../models');
-const controller = require('../controllers/controller');
 
 module.exports = {
+  async index(req, res, next) {
+    try{
+      let { id } = req.params
+      let blog = await Blog.findByPk(id);
+      if (!blog) {
+        return res.status(404).json({ error: "Blog not found" })
+      }
+      return res.json(blog)
+    } catch (err) {
+      next(err);
+    }
+  },
+
   async profile(req, res, next) {
     try {
       let { id } = req.params

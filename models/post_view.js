@@ -5,8 +5,8 @@ const {
 module.exports = (sequelize, DataTypes) => {
   class Post_view extends Model {
     static associate(models) {
-      Post_view.belongsTo(models.Post,{foreignKey: "post_id"})
-      Post_view.belongsTo(models.User,{foreignKey: "user_id"})
+      Post_view.belongsTo(models.Post,{foreignKey: "post_id", as: "post"})
+      Post_view.belongsTo(models.User,{foreignKey: "user_id", as: "user"})
     }
   }
   Post_view.init({

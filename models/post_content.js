@@ -5,7 +5,7 @@ const {
 module.exports = (sequelize, DataTypes) => {
   class Post_content extends Model {
     static associate(models) {
-      Post_content.belongsTo(models.Post, {foreignKey: "post_id"})
+      Post_content.belongsTo(models.Post, {foreignKey: "post_id", as: "post"});
     }
   }
   Post_content.init({

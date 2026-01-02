@@ -6,16 +6,18 @@ module.exports = (sequelize, DataTypes) => {
   class Post extends Model {
     static associate(models) {
       Post.belongsTo(models.Blog, {
-        foreignKey: "blog_id"
+        foreignKey: "blog_id",
+        as: "blog"
       })
       Post.belongsTo(models.Member, {
-        foreignKey: "member_id"
+        foreignKey: "member_id",
+        as: "member"
       })
-      Post.hasMany(models.Post_view, {foreignKey:"post_id"})
-      Post.hasMany(models.Post_tag, {foreignKey:"post_id"})
-      Post.hasMany(models.Post_content, {foreignKey:"post_id"})
-      Post.hasMany(models.Post_like, {foreignKey:"post_id"})
-      Post.hasMany(models.Comment, {foreignKey:"post_id"})
+      Post.hasMany(models.Post_view, {foreignKey:"post_id", as: "views"})
+      Post.hasMany(models.Post_tag, {foreignKey:"post_id", as: "tags"})
+      Post.hasMany(models.Post_content, {foreignKey:"post_id", as: "contents"})
+      Post.hasMany(models.Post_like, {foreignKey:"post_id", as: "likes"})
+      Post.hasMany(models.Comment, {foreignKey:"post_id", as: "comments"})
     }
   }
   Post.init({

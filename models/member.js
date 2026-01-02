@@ -6,13 +6,16 @@ module.exports = (sequelize, DataTypes) => {
   class Member extends Model {
     static associate(models) {
       Member.belongsTo(models.Blog, {
-        foreignKey: "blog_id"
+        foreignKey: "blog_id",
+        as: "blog"
       })
       Member.belongsTo(models.User, {
-        foreignKey: "user_id"
+        foreignKey: "user_id",
+        as: "user"
       })
       Member.hasMany(models.Post, {
-        foreignKey: "member_id"
+        foreignKey: "member_id",
+        as: "posts"
       })
     }
   }
