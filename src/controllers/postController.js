@@ -22,6 +22,20 @@ module.exports = {
       next(err);
     }
   },
+  async user_posts(req, res, next) {
+    try {
+      let { id } = req.params
+      let posts = await Post.findAll({
+        where: {
+          user_id: id
+        },
+        order: [['createdAt', 'DESC']]
+      });
+      return res.json(posts)
+    } catch (err) {
+      next(err);
+    }
+  },
 
   async profile(req, res, next) {
     try {

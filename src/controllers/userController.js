@@ -13,7 +13,15 @@ module.exports = {
     try {
       let { id } = req.params
       let user = await User.findByPk(id, {
-        attributes: { exclude: ['password'] }
+        attributes: {
+          include: [
+            [Sequelize.fn('COUNT', Sequelize.col('posts.id')), 'postCount'],
+            [Sequelize.fn('COUNT', Sequelize.col('blogs.id')), 'blogCount'],
+            [Sequelize.fn('COUNT', Sequelize.col('followers.id')), 'followingCount'],
+          ],
+          exclude: ['password'],
+        },
+        group: ['User.id']
       });
       if (!user) {
         return res.status(404).json({ error: "User not found" })
@@ -23,6 +31,35 @@ module.exports = {
       next(err)
     }
   },
+  /*
+  async index(req, res, next) {
+      try {
+        let { id } = req.params
+        const blog = await Blog.findByPk(id, {
+          attributes: {
+            include: [
+              [Sequelize.fn('COUNT', Sequelize.col('posts.id')), 'postCount']
+            ]
+          },
+          include: [{
+            model: Member,
+            as: 'members',
+            where: { role: 'ADMIN' },
+            include: [{
+              model: User,
+              as: 'user',
+            }]
+          }]
+        });
+        if (!blog) {
+          return res.status(404).json({ error: "Blog not found" })
+        }
+        return res.json(blog)
+      } catch (err) {
+        next(err);
+      }
+    },
+  */
   async register(req, res, next) {
     try {
       const { name, email, password } = req.body;
@@ -38,7 +75,7 @@ module.exports = {
         name,
         email,
         password: hashedPassword
-      }); 
+      });
 
       return res.status(201).json({
         id: user.id,

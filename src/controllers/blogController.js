@@ -35,6 +35,21 @@ module.exports = {
       next(err);
     }
   },
+  async user_blogs(req, res, next) {
+    try {
+      let { id } = req.params
+      let blogs = await Member.findAll({
+        where: { user_id: userId },
+        include: [{
+          model: Blog,
+          as: 'blog',
+        }]
+      });
+      return res.json(blogs)
+    } catch (err) {
+      next(err);
+    }
+  },
 
   async profile(req, res, next) {
     try {
