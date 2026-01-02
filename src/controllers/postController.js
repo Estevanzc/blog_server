@@ -292,6 +292,53 @@ module.exports = {
       "recentPosts": recentPosts
     })
   },
+  async topics(req, res, next) {
+    try {
+      let topics = [
+        'technology',
+        'culture-and-society',
+        'science',
+        'politics',
+        'art'
+      ];
+      let result = {};
+
+      for (let topic of topics) {
+        let posts = await Post.findAll({
+          where: {
+            status: 'published'
+          },
+          include: [{
+            model: Tag,
+            as: 'tags',
+            where: { topic },
+            through: { attributes: [] }
+          }],
+          order: [['publishedAt', 'DESC']],
+          limit: 5,
+          distinct: true
+        });
+
+        result[topic] = posts;
+      }
+      let recentPosts = await Post.findAll({
+        where: {
+        },
+        include: [{
+          model: Tag,
+          as: 'tags',
+        }],
+        order: [['createdAt', 'DESC']],
+        distinct: true
+      });
+      return res.json({
+        topics: result,
+        recentPosts: recentPosts,
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
   async blog_posts(req, res, next) {
     try {
       let { id } = req.params
