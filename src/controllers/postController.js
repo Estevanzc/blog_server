@@ -1,4 +1,5 @@
 const controller = require('../controllers/controller');
+const tagController = require('../controllers/tagController');
 const { Blog, Post } = require('../../models');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
@@ -223,7 +224,7 @@ module.exports = {
           as: 'posts',
           attributes: [],
           where: {
-            publishedAt: { [Op.gte]: since }
+            createdAt: { [Op.gte]: since }
           }
         }],
         group: ['Tag.id'],
@@ -240,6 +241,56 @@ module.exports = {
     } catch (err) {
       next(err);
     }
+  },
+  async recents(req, res, next) {
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const firstPost = await Post.findOne({
+      where: {
+        createdAt: {
+          [Op.gte]: startOfDay
+        }
+      },
+      order: [['createdAt', 'ASC']]
+    })
+    let firstFiveTags = await tagController.firstFiveUsed(req, res, next);
+    const tagIds = firstFiveTags.map(tag => tag.id);
+
+    if (!tagIds.length) {
+      return res.json([]);
+    }
+
+    let recentPostsByTag = await Post.findAll({
+      where: {
+      },
+      include: [{
+        model: Tag,
+        as: 'tags',
+        where: {
+          id: tagIds
+        },
+        through: { attributes: [] }
+      }],
+      order: [['createdAt', 'DESC']],
+      limit: 5,
+      distinct: true
+    });
+    let recentPosts = await Post.findAll({
+      where: {
+      },
+      include: [{
+        model: Tag,
+        as: 'tags',
+      }],
+      order: [['createdAt', 'DESC']],
+      distinct: true
+    });
+    return res.json({
+      "firstPost": firstPost,
+      "recentPostsByTag": recentPostsByTag,
+      "recentPosts": recentPosts
+    })
   },
   async blog_posts(req, res, next) {
     try {
