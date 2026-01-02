@@ -16,3 +16,6 @@ Politics
 Art
 
 All
+
+blog of my preferences
+trending blogs

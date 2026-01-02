@@ -1,4 +1,4 @@
-const controller = require('../controllers/controller');
+const controller = require('./controller');
 const { Blog, Member, Follower, User } = require('../../models');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
