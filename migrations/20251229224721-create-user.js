@@ -32,6 +32,10 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         defaultValue: false,
       },
+      admin: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
+      },
       photo: {
         type: Sequelize.STRING,
       },

@@ -1,5 +1,5 @@
 const controller = require('../controllers/controller');
-const { Blog, Member, Follower } = require('../../models');
+const { Blog, Member, Category } = require('../../models');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const uploadConfig = require('../config/upload');
@@ -46,6 +46,24 @@ module.exports = {
         }]
       });
       return res.json(blogs)
+    } catch (err) {
+      next(err);
+    }
+  },
+  async store(req, res, next) {
+    try { 
+      let {
+        name,
+        subname,
+        description,
+        category,
+      } = req.body;
+      if (!name || !subname || !description || !category) {
+        return res.status(400).json({
+          message: 'Missing required fields'
+        });
+      }
+      
     } catch (err) {
       next(err);
     }
