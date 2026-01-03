@@ -1,5 +1,5 @@
 const express = require('express');
-const {userController, followerController, memberController, postController, memberRequestController} = require('../controllers/');
+const {userController, followerController, memberController, postController, memberRequestController, notificationController} = require('../controllers/');
 
 const router = express.Router();
 
@@ -8,6 +8,7 @@ router.get('/following/:id', followerController.user_following);
 router.get('/membering/:id', memberController.user_membering);
 router.get('/posts/:id', postController.user_posts);
 router.get('/requests/:id', memberRequestController.user_requests);
+router.get('/notifications/:id', notificationController.user_notifications);
 router.post('/register', userController.register);
 router.post('/login', userController.login);
 router.put('/update/photo', userController.updatePhoto);
