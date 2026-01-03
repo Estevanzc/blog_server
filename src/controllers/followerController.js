@@ -9,6 +9,37 @@ const fs = require('fs/promises');
 const path = require('path');
 
 module.exports = {
+  async follow(req, res, next) {
+    try {
+      const user_id = req.user.id;
+      const { id } = req.body;
+
+      const blog = await Blog.findByPk(id);
+      if (!blog) {
+        return res.status(404).json({ error: "Blog not found" });
+      }
+
+      const follower = await Follower.findOne({
+        where: {
+          user_id: user_id,
+          blog_id: blog.id
+        }
+      });
+
+      if (!follower) {
+        await Follower.create({
+          blog_id: blog.id,
+          user_id: user_id
+        });
+        return res.json({ message: "Followed successfully!" });
+      } else {
+        await follower.destroy();
+        return res.json({ message: "Unfollowed successfully!" });
+      }
+    } catch (err) {
+      next(err);
+    }
+  },
   async blog_followers(req, res, next) {
     try {
       let { id } = req.params

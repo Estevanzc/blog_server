@@ -39,4 +39,33 @@ module.exports = {
       next(err);
     }
   },
+  async store(req, res, next) {
+    try {
+      const user_id = req.user.id;
+      const { id } = req.params;
+      const blog = await Blog.findByPk(id);
+      if (!blog) {
+        return res.status(404).json({ error: "Blog not found" });
+      }
+      const request = await Member_request.create({
+        user_id: user_id,
+        blog_id: blog.id
+      });
+      const admin = await Member.findOne({
+        where: {
+          blog_id: blog.id,
+          role: 1
+        }
+      });
+      await Notification.create({
+        user_id: admin.user_id,
+        name: `${req.user.name} wants to join ${blog.name}`,
+        link: `/`
+      });
+
+      return res.json(request);
+    } catch (err) {
+      next(err);
+    }
+  },
 };

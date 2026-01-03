@@ -39,4 +39,51 @@ module.exports = {
       next(err);
     }
   },
+  async store(req, res, next) {
+    try {
+      const { id } = req.body;
+      const request = await Member_request.findByPk(id);
+      if (!request) {
+        return res.status(404).json({
+          message: "Membership Request not found"
+        });
+      }
+      await Member.create({
+        user_id: request.user_id,
+        blog_id: request.blog_id,
+      });
+
+      await request.destroy();
+      return res.status(201).json({
+        message: "Membership Request Accepted Successfully"
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+  async destroy(req, res, next) {
+    try {
+      const user_id = req.user.id;
+      let { id } = req.body;
+      let blog = await Blog.findByPk(id);
+      if (!blog) {
+        return res.status(404).json({ error: 'Blog not found' });
+      }
+      const member = await Member.findOne({
+        where: {
+          user_id: user_id,
+          blog_id: blog.id
+        }
+      });
+      if (!member || member.role == 1) {
+        return res.json({
+          error: "Membership not found or unable to be destroyed"
+        })
+      }
+      await member.destroy()
+      return res.json({ message: "Membership deleted succefully" })
+    } catch (err) {
+      next(err)
+    }
+  },
 };
