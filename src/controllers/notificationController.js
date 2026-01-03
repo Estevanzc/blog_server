@@ -1,5 +1,6 @@
 const controller = require('./controller');
-const { Blog, Member, Notification, User } = require('../../models');
+const { Sequelize } = require('sequelize');
+const { Blog, Member, Category, User, Comment, Follower, Member_request, Notification, Post_content, Post_like, Post_view, Post_tag, Tag, Post, Preference } = require('../../models');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const uploadConfig = require('../config/update');

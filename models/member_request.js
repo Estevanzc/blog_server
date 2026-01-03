@@ -5,8 +5,8 @@ const {
 module.exports = (sequelize, DataTypes) => {
   class Member_request extends Model {
     static associate(models) {
-      Member_request.belongsTo(models.User, { foreignKey: 'user_id' });
-      Member_request.belongsTo(models.Blog, { foreignKey: 'blog_id' });
+      Member_request.belongsTo(models.User, { foreignKey: 'user_id', as: "user" });
+      Member_request.belongsTo(models.Blog, { foreignKey: 'blog_id', as: "blog" });
     }
   }
   Member_request.init({

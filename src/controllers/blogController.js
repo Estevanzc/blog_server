@@ -1,5 +1,6 @@
 const controller = require('../controllers/controller');
-const { sequelize, Blog, Member, Category } = require('../../models');
+const { sequelize, Blog, Member, Category, User, Comment, Follower, Member_request, Notification, Post_content, Post_like, Post_view, Post_tag, Tag, Post, Preference } = require('../../models');
+const { Sequelize } = require('sequelize');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const uploadConfig = require('../config/update');
@@ -10,27 +11,42 @@ const path = require('path');
 module.exports = {
   async index(req, res, next) {
     try {
-      let { id } = req.params
+      const { id } = req.params;
+
       const blog = await Blog.findByPk(id, {
         attributes: {
           include: [
-            [Sequelize.fn('COUNT', Sequelize.col('posts.id')), 'postCount']
-          ]
+            [Sequelize.fn('COUNT', Sequelize.col('posts.id')), 'postCount'],
+          ],
         },
-        include: [{
-          model: Member,
-          as: 'members',
-          where: { role: 1 },
-          include: [{
-            model: User,
-            as: 'user',
-          }]
-        }]
+        include: [
+          {
+            model: Post,
+            as: 'posts',
+            attributes: [],
+          },
+          {
+            model: Member,
+            as: 'members',
+            where: { role: 1 },
+            include: [
+              {
+                model: User,
+                as: 'user',
+              },
+            ],
+          },
+        ],
+        group: [
+          'Blog.id',
+          'members.id',
+          'members->user.id',
+        ],
       });
       if (!blog) {
-        return res.status(404).json({ error: "Blog not found" })
+        return res.status(404).json({ error: 'Blog not found' });
       }
-      return res.json(blog)
+      return res.json(blog);
     } catch (err) {
       next(err);
     }

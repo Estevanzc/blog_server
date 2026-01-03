@@ -1,11 +1,12 @@
 const bcrypt = require('bcryptjs');
+const { Sequelize } = require('sequelize');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const uploadConfig = require('../config/update');
 const upload = multer(uploadConfig);
 const fs = require('fs/promises');
 const path = require('path');
-const { User } = require('../../models');
+const { Blog, Member, Category, User, Comment, Follower, Member_request, Notification, Post_content, Post_like, Post_view, Post_tag, Tag, Post, Preference } = require('../../models');
 const controller = require('../controllers/controller');
 
 module.exports = {
@@ -15,14 +16,35 @@ module.exports = {
       let user = await User.findByPk(id, {
         attributes: {
           include: [
-            [Sequelize.fn('COUNT', Sequelize.col('posts.id')), 'postCount'],
-            [Sequelize.fn('COUNT', Sequelize.col('blogs.id')), 'blogCount'],
-            [Sequelize.fn('COUNT', Sequelize.col('followers.id')), 'followingCount'],
+            [Sequelize.fn('COUNT', Sequelize.fn('DISTINCT', Sequelize.col('members.posts.id'))), 'postCount'],
+            [Sequelize.fn('COUNT', Sequelize.fn('DISTINCT', Sequelize.col('members.blog.id'))), 'blogCount'],
+            [Sequelize.fn('COUNT', Sequelize.fn('DISTINCT', Sequelize.col('followers.id'))), 'followerCount']
           ],
           exclude: ['password'],
         },
+        include: [
+          {
+            model: Member,
+            as: 'members',
+            attributes: [],
+            include: [
+              {
+                model: Post,
+                as: 'posts',
+                attributes: []
+              },
+              {
+                model: Blog,
+                as: 'blog',
+                attributes: []
+              }
+            ]
+          },
+          { model: Follower, as: 'followers', attributes: [] }
+        ],
         group: ['User.id']
       });
+
       if (!user) {
         return res.status(404).json({ error: "User not found" })
       }

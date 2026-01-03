@@ -1,5 +1,5 @@
 const controller = require('./controller');
-const { Blog, Post } = require('../../models');
+const { Blog, Member, Category, User, Comment, Follower, Member_request, Notification, Post_content, Post_like, Post_view, Post_tag, Tag, Post, Preference } = require('../../models');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const uploadConfig = require('../config/update');
@@ -15,29 +15,27 @@ module.exports = {
       startOfDay.setHours(0, 0, 0, 0);
 
       const tags = await Tag.findAll({
-        attributes: [
-          'id',
-          'name',
-          'slug',
-          [Sequelize.fn('MIN', Sequelize.col('posts.publishedAt')), 'firstUsedAt']
-        ],
         include: [{
           model: Post,
           as: 'posts',
-          attributes: [],
+          attributes: ['id', 'createdAt'],
           where: {
-            status: 'published',
-            publishedAt: {
-              [Op.gte]: startOfDay
-            }
+            createdAt: { [Op.gte]: startOfDay }
           },
           through: { attributes: [] }
         }],
-        group: ['Tag.id'],
-        order: [[Sequelize.literal('firstUsedAt'), 'ASC']],
         limit: 5
       });
-      return tags;
+
+      const tagsWithFirstUsedAt = tags.map(tag => {
+        const firstUsedAt = tag.posts.length
+          ? new Date(Math.min(...tag.posts.map(p => p.createdAt)))
+          : null;
+        return { ...tag.toJSON(), firstUsedAt };
+      });
+
+      return tagsWithFirstUsedAt;
+
     } catch (err) {
       next(err);
     }

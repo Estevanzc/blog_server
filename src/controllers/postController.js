@@ -1,6 +1,6 @@
 const controller = require('../controllers/controller');
 const tagController = require('../controllers/tagController');
-const { Blog, Post, Post_content } = require('../../models');
+const { Blog, Member, Category, User, Comment, Follower, Member_request, Notification, Post_content, Post_like, Post_view, Post_tag, Tag, Post, Preference } = require('../../models');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const uploadConfig = require('../config/update');
@@ -24,13 +24,13 @@ module.exports = {
         },
         include: [
           {
-            model: View,
+            model: Post_view,
             as: 'views',
             attributes: [],
             required: false
           },
           {
-            model: Like,
+            model: Post_like,
             as: 'likes',
             attributes: [],
             required: false
@@ -42,12 +42,10 @@ module.exports = {
             required: false
           },
           {
-            model: Post_tag,
+            model: Tag,
             as: 'tags',
-            attributes: [],
-            include: [
-              { model: Tag, as: 'tag', attributes: ['id', 'name'] }
-            ]
+            attributes: ['id', 'name'],
+            through: { attributes: [] }
           },
           {
             model: Member,
@@ -56,12 +54,12 @@ module.exports = {
               {
                 model: User,
                 as: 'user',
-                attributes: ['id', 'username', 'avatar']
+                attributes: ['id', 'name', 'photo']
               },
               {
                 model: Blog,
                 as: 'blog',
-                attributes: ['id', 'title', 'slug']
+                attributes: ['id', 'name', 'photo']
               }
             ]
           }
@@ -81,7 +79,7 @@ module.exports = {
 
       const comments = await Comment.findAll({
         where: { post_id: id },
-        include: [{ model: User, as: 'user', attributes: ['id', 'username', 'avatar'] }],
+        include: [{ model: User, as: 'user', attributes: ['id', 'name', 'photo'] }],
         order: [['createdAt', 'ASC']]
       });
 
@@ -89,8 +87,9 @@ module.exports = {
         where: { post_id: id },
         order: [['order', 'ASC']],
       });
-
-      const tagIds = post.tags.map(tag => tag.id);
+      const tagIds = (post.tags || [])
+        .map(pt => pt.tag?.id)
+        .filter(Boolean);
 
       const relatedPosts = await Post.findAll({
         where: { id: { [Sequelize.Op.ne]: id } },
@@ -105,8 +104,8 @@ module.exports = {
             model: Member,
             as: 'member',
             include: [
-              { model: User, as: 'user', attributes: ['id', 'username', 'avatar'] },
-              { model: Blog, as: 'blog', attributes: ['id', 'title', 'slug'] }
+              { model: User, as: 'user', attributes: ['id', 'name', 'photo'] },
+              { model: Blog, as: 'blog', attributes: ['id', 'name', 'photo'] }
             ]
           }
         ],
@@ -128,6 +127,8 @@ module.exports = {
   },
   async home(req, res, next) {
     try {
+      let since = new Date();
+      since.setDate(since.getDate() - 30);
       let trending_post = await Post.findAll({
         where: {
           createdAt: {
@@ -143,7 +144,7 @@ module.exports = {
         },
         include: [
           {
-            model: View,
+            model: Post_view,
             as: 'views',
             attributes: [],
             where: {
@@ -152,7 +153,7 @@ module.exports = {
             required: false
           },
           {
-            model: Like,
+            model: Post_like,
             as: 'likes',
             attributes: [],
             where: {
@@ -176,39 +177,37 @@ module.exports = {
               {
                 model: User,
                 as: 'user',
-                attributes: ['id', 'username', 'avatar']
+                attributes: ['id', 'name', 'photo']
               }
             ]
+          },
+          {
+            model: Tag,
+            as: 'tags',
+            attributes: ['id', 'name'],
+            through: { attributes: [] }
           }
         ],
         group: [
           'Post.id',
           'member.id',
-          'member->user.id'
+          'member->user.id',
+          'tags.id'
         ],
         order: [[Sequelize.literal('(COUNT(DISTINCT views.id) * 1 + COUNT(DISTINCT likes.id) * 3 + COUNT(DISTINCT comments.id) * 2)'), 'DESC']],
         limit: 1,
         subQuery: false
       });
-      const trendingTagIds = trending_post[0].tags.map(pt => pt.tag.id);
       const relatedPosts = await Post.findAll({
         where: {
           id: { [Op.ne]: trending_post[0].id }
         },
         include: [
           {
-            model: Post_tag,
+            model: Tag,
             as: 'tags',
-            attributes: [],
-            required: true,
-            include: [
-              {
-                model: Tag,
-                as: 'tag',
-                attributes: ['id', 'name'],
-                where: { id: { [Op.in]: trendingTagIds } }
-              }
-            ]
+            attributes: ['id', 'name'],
+            through: { attributes: [] }
           },
           {
             model: Member,
@@ -225,12 +224,10 @@ module.exports = {
       const recentPosts = await Post.findAll({
         include: [
           {
-            model: Post_tag,
+            model: Tag,
             as: 'tags',
-            attributes: [],
-            include: [
-              { model: Tag, as: 'tag', attributes: ['id', 'name'] }
-            ]
+            attributes: ['id', 'name'],
+            through: { attributes: [] }
           },
           {
             model: Member,
@@ -239,7 +236,7 @@ module.exports = {
               {
                 model: User,
                 as: 'user',
-                attributes: ['id', 'username', 'avatar']
+                attributes: ['id', 'name', 'photo']
               }
             ]
           }
@@ -272,24 +269,22 @@ module.exports = {
       const posts = await Post.findAll({
         include: [
           {
-            model: Blog,     // direct blog relationship
+            model: Blog,
             as: 'blog',
             where: { id: { [Op.in]: blogIds } },
-            attributes: ['id', 'title', 'slug']
+            attributes: ['id', 'name', 'photo']
           },
           {
-            model: Post_tag,
+            model: Tag,
             as: 'tags',
-            attributes: [],
-            include: [
-              { model: Tag, as: 'tag', attributes: ['id', 'name'] }
-            ]
+            attributes: ['id', 'name'],
+            through: { attributes: [] }
           },
           {
             model: Member,
             as: 'member',
             include: [
-              { model: User, as: 'user', attributes: ['id', 'username', 'avatar'] }
+              { model: User, as: 'user', attributes: ['id', 'name', 'photo'] }
             ]
           }
         ],
@@ -328,18 +323,16 @@ module.exports = {
         },
         include: [
           {
-            model: Post_tag,
+            model: Tag,
             as: 'tags',
-            attributes: [],
-            include: [
-              { model: Tag, as: 'tag', attributes: ['id', 'name'] }
-            ]
+            attributes: ['id', 'name'],
+            through: { attributes: [] }
           },
           {
             model: Member,
             as: 'member',
             include: [
-              { model: User, as: 'user', attributes: ['id', 'username', 'avatar'] }
+              { model: User, as: 'user', attributes: ['id', 'name', 'photo'] }
             ]
           }
         ],
@@ -363,18 +356,16 @@ module.exports = {
             as: 'post',
             include: [
               {
-                model: Post_tag,
+                model: Tag,
                 as: 'tags',
-                attributes: [],
-                include: [
-                  { model: Tag, as: 'tag', attributes: ['id', 'name'] }
-                ]
+                attributes: ['id', 'name'],
+                through: { attributes: [] }
               },
               {
                 model: Member,
                 as: 'member',
                 include: [
-                  { model: User, as: 'user', attributes: ['id', 'username', 'avatar'] }
+                  { model: User, as: 'user', attributes: ['id', 'name', 'photo'] }
                 ]
               }
             ]
@@ -408,7 +399,7 @@ module.exports = {
         },
         include: [
           {
-            model: View,
+            model: Post_view,
             as: 'views',
             attributes: [],
             where: {
@@ -417,7 +408,7 @@ module.exports = {
             required: false
           },
           {
-            model: Like,
+            model: Post_like,
             as: 'likes',
             attributes: [],
             where: {
@@ -441,7 +432,7 @@ module.exports = {
               {
                 model: User,
                 as: 'user',
-                attributes: ['id', 'username', 'avatar']
+                attributes: ['id', 'name', 'photo']
               }
             ]
           }
@@ -466,14 +457,14 @@ module.exports = {
         },
         include: [
           {
-            model: View,
+            model: Post_view,
             as: 'views',
             attributes: [],
             where: { createdAt: { [Op.gte]: since } },
             required: false
           },
           {
-            model: Like,
+            model: Post_like,
             as: 'likes',
             attributes: [],
             where: { createdAt: { [Op.gte]: since } },
@@ -493,7 +484,7 @@ module.exports = {
               {
                 model: User,
                 as: 'user',
-                attributes: ['id', 'username', 'avatar']
+                attributes: ['id', 'name', 'photo']
               }
             ]
           }
@@ -521,14 +512,14 @@ module.exports = {
         },
         include: [
           {
-            model: View,
+            model: Post_view,
             as: 'views',
             attributes: [],
             where: { createdAt: { [Op.gte]: since } },
             required: false
           },
           {
-            model: Like,
+            model: Post_like,
             as: 'likes',
             attributes: [],
             where: { createdAt: { [Op.gte]: since } },
@@ -548,7 +539,7 @@ module.exports = {
               {
                 model: User,
                 as: 'user',
-                attributes: ['id', 'username', 'avatar']
+                attributes: ['id', 'name', 'photo']
               }
             ]
           }
@@ -576,14 +567,14 @@ module.exports = {
         },
         include: [
           {
-            model: View,
+            model: Post_view,
             as: 'views',
             attributes: [],
             where: { createdAt: { [Op.gte]: since } },
             required: false
           },
           {
-            model: Like,
+            model: Post_like,
             as: 'likes',
             attributes: [],
             where: { createdAt: { [Op.gte]: since } },
@@ -603,7 +594,7 @@ module.exports = {
               {
                 model: User,
                 as: 'user',
-                attributes: ['id', 'username', 'avatar']
+                attributes: ['id', 'name', 'photo']
               }
             ]
           }
@@ -658,21 +649,13 @@ module.exports = {
       startOfDay.setHours(0, 0, 0, 0);
 
       const firstPost = await Post.findOne({
-        where: {
-          createdAt: {
-            [Op.gte]: startOfDay
-          }
-        },
+        where: { createdAt: { [Op.gte]: startOfDay } },
         include: [
           {
             model: Member,
             as: 'member',
             include: [
-              {
-                model: User,
-                as: 'user',
-                attributes: ['id', 'username', 'avatar']
-              }
+              { model: User, as: 'user', attributes: ['id', 'name', 'photo'] }
             ]
           }
         ],
@@ -680,71 +663,46 @@ module.exports = {
       });
 
       const firstFiveTags = await tagController.firstFiveUsed(req, res, next);
-      const tagIds = firstFiveTags.map(tag => tag.id);
+      const tagIds = (firstFiveTags || []).map(tag => tag.id);
 
-      if (!tagIds.length) {
-        return res.json({
-          firstPost,
-          recentPostsByTag: [],
-          recentPosts: []
+      let recentPostsByTag = [];
+      if (tagIds.length > 0) {
+        recentPostsByTag = await Post.findAll({
+          include: [
+            {
+              model: Tag,
+              as: 'tags',
+              where: { id: { [Op.in]: tagIds } },
+              attributes: ['id', 'name'],
+              through: { attributes: [] }
+            },
+            {
+              model: Member,
+              as: 'member',
+              include: [
+                { model: User, as: 'user', attributes: ['id', 'name', 'photo'] }
+              ]
+            }
+          ],
+          order: [['createdAt', 'DESC']],
+          limit: 5,
+          distinct: true
         });
       }
-
-      const recentPostsByTag = await Post.findAll({
-        include: [
-          {
-            model: Post_tag,
-            as: 'tags',
-            where: { id: tagIds },
-            attributes: [],
-            through: { attributes: [] },
-            include: [
-              {
-                model: Post_tag,
-                as: 'tags',
-                attributes: [],
-                include: [
-                  { model: Tag, as: 'tag', attributes: ['id', 'name'] }
-                ]
-              },
-            ]
-          },
-          {
-            model: Member,
-            as: 'member',
-            include: [
-              {
-                model: User,
-                as: 'user',
-                attributes: ['id', 'username', 'avatar']
-              }
-            ]
-          }
-        ],
-        order: [['createdAt', 'DESC']],
-        limit: 5,
-        distinct: true
-      });
 
       const recentPosts = await Post.findAll({
         include: [
           {
-            model: Post_tag,
+            model: Tag,
             as: 'tags',
-            attributes: [],
-            include: [
-              { model: Tag, as: 'tag', attributes: ['id', 'name'] }
-            ]
+            attributes: ['id', 'name'],
+            through: { attributes: [] }
           },
           {
             model: Member,
             as: 'member',
             include: [
-              {
-                model: User,
-                as: 'user',
-                attributes: ['id', 'username', 'avatar']
-              }
+              { model: User, as: 'user', attributes: ['id', 'name', 'photo'] }
             ]
           }
         ],
@@ -753,9 +711,9 @@ module.exports = {
       });
 
       return res.json({
-        firstPost: firstPost,
-        recentPostsByTag: recentPostsByTag,
-        recentPosts: recentPosts
+        firstPost,
+        recentPostsByTag,
+        recentPosts
       });
 
     } catch (err) {
@@ -778,21 +736,11 @@ module.exports = {
         const posts = await Post.findAll({
           include: [
             {
-              model: Post_tag,
+              model: Tag,
               as: 'tags',
-              where: { topic },
-              attributes: [],
-              through: { attributes: [] },
-              include: [
-                {
-                  model: Post_tag,
-                  as: 'tags',
-                  attributes: [],
-                  include: [
-                    { model: Tag, as: 'tag', attributes: ['id', 'name'] }
-                  ]
-                },
-              ]
+              where: { name: topic }, // filter by Tag.name (or slug if you have it)
+              attributes: ['id', 'name'],
+              through: { attributes: [] } // hide join table
             },
             {
               model: Member,
@@ -801,7 +749,7 @@ module.exports = {
                 {
                   model: User,
                   as: 'user',
-                  attributes: ['id', 'username', 'avatar']
+                  attributes: ['id', 'name', 'photo']
                 }
               ]
             }
@@ -815,17 +763,12 @@ module.exports = {
       }
 
       const recentPosts = await Post.findAll({
-        where: {
-          status: 'published'
-        },
         include: [
           {
-            model: Post_tag,
+            model: Tag,
             as: 'tags',
-            attributes: [],
-            include: [
-              { model: Tag, as: 'tag', attributes: ['id', 'name'] }
-            ]
+            attributes: ['id', 'name'],
+            through: { attributes: [] }
           },
           {
             model: Member,
@@ -834,7 +777,7 @@ module.exports = {
               {
                 model: User,
                 as: 'user',
-                attributes: ['id', 'username', 'avatar']
+                attributes: ['id', 'name', 'photo']
               }
             ]
           }
@@ -864,7 +807,7 @@ module.exports = {
               {
                 model: User,
                 as: 'user',
-                attributes: ['id', 'username', 'avatar']
+                attributes: ['id', 'name', 'photo']
               }
             ]
           }
@@ -885,22 +828,17 @@ module.exports = {
           {
             model: Member,
             as: 'member',
-            where: { user_id: id },
+            where: { blog_id: id },
             include: [
               {
                 model: User,
                 as: 'user',
-                attributes: ['id', 'username', 'avatar']
+                attributes: ['id', 'name', 'photo'],
               },
-              {
-                model: Blog,
-                as: 'blog',
-                attributes: ['id', 'title']
-              }
-            ]
-          }
+            ],
+          },
         ],
-        order: [['createdAt', 'DESC']]
+        order: [['createdAt', 'DESC']],
       });
 
       return res.json(posts);
