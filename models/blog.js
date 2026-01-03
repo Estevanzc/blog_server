@@ -9,6 +9,7 @@ module.exports = (sequelize, DataTypes) => {
       Blog.hasMany(models.Follower, {foreignKey: 'blog_id', as: 'followers'});
       Blog.hasMany(models.Member, {foreignKey: 'blog_id', as: 'members'});
       Blog.hasMany(models.Post, {foreignKey: 'blog_id', as: 'posts'});
+      Blog.hasMany(models.Member_request, {foreignKey: "blog_id", as: "requests"})
     }
   }
   Blog.init({

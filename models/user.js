@@ -10,6 +10,7 @@ module.exports = (sequelize, DataTypes) => {
       User.hasMany(models.Member, {foreignKey: "user_id", as: "members"})
       User.hasMany(models.Post_view, {foreignKey: "user_id", as: "views"})
       User.hasMany(models.Post_like, {foreignKey: "user_id", as: "likes"})
+      User.hasMany(models.Member_request, {foreignKey: "user_id", as: "requests"})
     }
   }
   User.init({

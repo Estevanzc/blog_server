@@ -1,5 +1,5 @@
 const controller = require('./controller');
-const { Blog, Member, Follower, User } = require('../../models');
+const { Blog, User, Member_request } = require('../../models');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const uploadConfig = require('../config/upload');
@@ -8,32 +8,32 @@ const fs = require('fs/promises');
 const path = require('path');
 
 module.exports = {
-  async blog_followers(req, res, next) {
+  async blog_requests(req, res, next) {
     try {
       let { id } = req.params
-      let followers = await Follower.findAll({
+      let requests = await Member_request.findAll({
         where: { blog_id: id },
         include: [{
           model: User,
           as: 'user',
         }]
       });
-      return res.json(followers)
+      return res.json(requests)
     } catch (err) {
       next(err);
     }
   },
-  async user_following(req, res, next) {
+  async user_requests(req, res, next) {
     try {
       let { id } = req.params
-      let following = await Follower.findAll({
+      let requests = await Member_request.findAll({
         where: { user_id: id },
         include: [{
           model: Blog,
           as: 'blog',
         }]
       });
-      return res.json(following)
+      return res.json(requests)
     } catch (err) {
       next(err);
     }

@@ -12,7 +12,7 @@ module.exports = {
     try {
       let { id } = req.params
       let members = await Member.findAll({
-        where: { user_id: id },
+        where: { blog_id: id },
         include: [{
           model: User,
           as: 'user',
