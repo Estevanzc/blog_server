@@ -77,6 +77,11 @@ module.exports = {
       if (!post) {
         return res.status(404).json({ error: 'Post not found' });
       }
+      let user_id = req.user?.id ?? null;
+      await Post_view.create({
+        user_id: user_id,
+        post_id: post.id
+      })
 
       const comments = await Comment.findAll({
         where: { post_id: id },
@@ -992,5 +997,36 @@ module.exports = {
       next(err);
     }
   },
+  async like(req, res, next) {
+    try {
+      const user_id = req.user.id;
+      const { id } = req.body;
+
+      const post = await Post.findByPk(id);
+      if (!post) {
+        return res.status(404).json({ error: "Post not found" });
+      }
+
+      const like = await Post_like.findOne({
+        where: {
+          user_id: user_id,
+          post_id: post.id
+        }
+      });
+
+      if (!like) {
+        await Post_like.create({
+          post_id: post.id,
+          user_id: user_id
+        });
+        return res.json({ message: "Liked successfully!" });
+      } else {
+        await like.destroy();
+        return res.json({ message: "Unliked successfully!" });
+      }
+    } catch (err) {
+      next(err)
+    }
+  }
 
 };
