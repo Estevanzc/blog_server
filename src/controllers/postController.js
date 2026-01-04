@@ -1,13 +1,14 @@
 const controller = require('../controllers/controller');
 const tagController = require('../controllers/tagController');
-const { Blog, Member, Category, User, Comment, Follower, Member_request, Notification, Post_content, Post_like, Post_view, Post_tag, Tag, Post, Preference } = require('../../models');
+const postContentController = require('../controllers/postContentController');
+const { sequelize, Blog, Member, Category, User, Comment, Follower, Member_request, Notification, Post_content, Post_like, Post_view, Post_tag, Tag, Post, Preference } = require('../../models');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const uploadConfig = require('../config/update');
 const upload = multer(uploadConfig);
 const fs = require('fs/promises');
 const path = require('path');
-const { Op, Sequelize } = require('sequelize');
+const { Op, Sequelize, where } = require('sequelize');
 
 module.exports = {
   async view(req, res, next) {
@@ -845,5 +846,151 @@ module.exports = {
     } catch (err) {
       next(err);
     }
-  }
+  },
+  async store(req, res, next) {
+    try {
+      let { title, subtitle, summary, blog_id, contents } = req.body
+      let user_id = req.user.id
+      let transaction = await sequelize.transaction()
+      let member = await Member.findOne({
+        where: {
+          blog_id,
+          user_id
+        },
+        transaction
+      })
+      if (!member) {
+        await transaction.rollback()
+        return res.status(403).json({
+          error: 'You are not a member of the blog'
+        })
+      }
+      let post = await Post.create(
+        {
+          title,
+          subtitle,
+          summary,
+          blog_id,
+          member_id: member.id
+        },
+        { transaction }
+      )
+      const blocks = contents.map(block => ({
+        type: block.type,
+        content: block.content,
+        order: block.order,
+        post_id: post.id,
+      }))
+      await Post_content.bulkCreate(blocks, { transaction })
+      await transaction.commit()
+      return res.status(201).json({
+        id: post.id
+      })
+    } catch (err) {
+      await transaction.rollback()
+      next(err)
+    }
+  },
+  async imageContentUpload(req, res, next) {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          error: 'No image file provided'
+        })
+      }
+      const imagePath = await uploadImage({
+        file: req.file
+      })
+      return res.status(201).json({
+        path: imagePath
+      })
+    } catch (err) {
+      next(err)
+    }
+  },
+  async update(req, res, next) {
+    const transaction = await sequelize.transaction()
+
+    try {
+      let { title, subtitle, summary, contents, post_id } = req.body
+      let user_id = req.user.id
+      let post = await Post.findOne({
+        where: { id: post_id },
+        include: {
+          model: Member,
+          required: true,
+          where: { user_id: user_id }
+        },
+        transaction
+      })
+
+      if (!post) {
+        await transaction.rollback()
+        return res.status(403).json({
+          error: 'You are not allowed to edit this post'
+        })
+      }
+      if (!Array.isArray(contents)) {
+        await transaction.rollback()
+        return res.status(400).json({
+          error: 'Invalid contents'
+        })
+      }
+      await post.update(
+        { title, subtitle, summary },
+        { transaction }
+      )
+      await postContentController.destroyContent(post_id, transaction)
+      let blocks = contents.map((block, index) => ({
+        post_id: post_id,
+        type: block.type,
+        content: block.content,
+        order: index
+      }))
+      await Post_content.bulkCreate(blocks, { transaction })
+      await transaction.commit()
+
+      return res.sendStatus(204)
+
+    } catch (err) {
+      await transaction.rollback()
+      next(err)
+    }
+  },
+  async destroy(req, res, next) {
+    const transaction = await sequelize.transaction();
+    try {
+      const user_id = req.user.id;
+      const { post_id } = req.body;
+      const post = await Post.findByPk(post_id, { transaction });
+      if (!post) {
+        await transaction.rollback();
+        return res.status(404).json({
+          error: "Post not found"
+        });
+      }
+      const member = await Member.findOne({
+        where: {
+          user_id,
+          blog_id: post.blog_id
+        },
+        transaction
+      });
+      if (!member || member.role !== 1) {
+        await transaction.rollback();
+        return res.status(403).json({
+          error: "You are not allowed to delete this post"
+        });
+      }
+      await postContentController.destroyContent(post_id, transaction);
+      await post.destroy({ transaction });
+
+      await transaction.commit();
+      return res.status(204).send();
+    } catch (err) {
+      await transaction.rollback();
+      next(err);
+    }
+  },
+
 };

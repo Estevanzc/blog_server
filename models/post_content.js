@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
     },
     type: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.INTEGER, // 1: title, 2: text, 3: image, 4:citation
       allowNull: false
     },
     content: {

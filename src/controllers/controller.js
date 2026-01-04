@@ -23,4 +23,20 @@ module.exports = {
             [field]: `/uploads/${file.filename}`
         });
     },
+    async saveImage({file, oldPath = null}) {
+        if (!file) {
+            throw new Error('No file provided')
+        }
+        if (oldPath) {
+            const absoluteOldPath = path.resolve(
+                process.cwd(),
+                oldPath.startsWith('/') ? oldPath.slice(1) : oldPath
+            )
+            try {
+                await fs.unlink(absoluteOldPath)
+            } catch (err) {
+            }
+        }
+        return `/uploads/${file.filename}`
+    },
 };
