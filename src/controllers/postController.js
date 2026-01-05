@@ -854,7 +854,7 @@ module.exports = {
   },
   async store(req, res, next) {
     try {
-      let { title, subtitle, summary, blog_id, contents } = req.body
+      let { title, subtitle, summary, blog_id, contents, tags } = req.body
       let user_id = req.user.id
       let transaction = await sequelize.transaction()
       let member = await Member.findOne({
@@ -880,6 +880,7 @@ module.exports = {
         },
         { transaction }
       )
+      tags = await tagController.store(tags, post.id, transaction)
       const blocks = contents.map(block => ({
         type: block.type,
         content: block.content,
@@ -917,7 +918,7 @@ module.exports = {
     const transaction = await sequelize.transaction()
 
     try {
-      let { title, subtitle, summary, contents, post_id } = req.body
+      let { title, subtitle, summary, contents, tags, post_id } = req.body
       let user_id = req.user.id
       let post = await Post.findOne({
         where: { id: post_id },
@@ -952,6 +953,7 @@ module.exports = {
         content: block.content,
         order: index
       }))
+      tags = await tagController.store(tags, post.id, transaction)
       await Post_content.bulkCreate(blocks, { transaction })
       await transaction.commit()
 
