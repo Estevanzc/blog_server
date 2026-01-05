@@ -147,7 +147,7 @@ module.exports = {
         category_id,
       });
       return res.status(201).json({
-        message: "Blog updated succefully!"
+        message: "Blog updated successfully!"
       })
     } catch (err) {
       next(err);
@@ -201,7 +201,7 @@ module.exports = {
         return res.status(404).json({ error: 'Blog not found' });
       }
       await blog.destroy()
-      return res.json({ message: "Blog deleted succefully" })
+      return res.json({ message: "Blog deleted successfully" })
     } catch (err) {
       next(err)
     }

@@ -81,7 +81,7 @@ module.exports = {
         })
       }
       await member.destroy()
-      return res.json({ message: "Membership deleted succefully" })
+      return res.json({ message: "Membership deleted successfully" })
     } catch (err) {
       next(err)
     }

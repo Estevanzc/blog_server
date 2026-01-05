@@ -92,7 +92,7 @@ module.exports = {
       await transaction.commit();
 
       return res.status(200).json({
-        message: "Post tags created succefully"
+        message: "Post tags created successfully"
       });
 
     } catch (error) {
