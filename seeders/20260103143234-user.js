@@ -35,6 +35,16 @@ module.exports = {
         dark_mode: true,
         createdAt: new Date(),
         updatedAt: new Date(),
+      },
+      {
+        name: 'John Doe\'s brother',
+        email: 'johndoesbrother@example.com',
+        password: password,
+        birth: new Date('1998-11-10'),
+        description: 'Another demo user',
+        dark_mode: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       }
     ]);
   },
