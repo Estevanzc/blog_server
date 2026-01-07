@@ -12,7 +12,7 @@ module.exports = {
   async follow(req, res, next) {
     try {
       const user_id = req.user.id;
-      const { id } = req.body;
+      const { id } = req.params;
 
       const blog = await Blog.findByPk(id);
       if (!blog) {

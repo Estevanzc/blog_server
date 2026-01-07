@@ -16,7 +16,8 @@ router.post('/preferences/store', authMiddleware, preferenceController.store);
 router.put('/update/photo', authMiddleware, userController.updatePhoto);
 router.put('/update/banner', authMiddleware, userController.updateBanner);
 router.put('/update', authMiddleware, userController.update);
-router.delete('/notifications/destroy', authMiddleware, notificationController.destroy);
+router.delete('/notifications/destroy/all', authMiddleware, notificationController.destroyAll);
+router.delete('/notifications/destroy/:id', authMiddleware, notificationController.destroy);
 router.delete('/:id', authMiddleware, userController.destroy);
 
 module.exports = router;

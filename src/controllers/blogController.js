@@ -81,7 +81,7 @@ module.exports = {
         });
       }
 
-      const userId = req.user.id;
+      const user_id = req.user.id;
 
       const blog = await sequelize.transaction(async (t) => {
         const [categoryData] = await Category.findOrCreate({
@@ -95,7 +95,7 @@ module.exports = {
           category_id: categoryData.id
         }, { transaction: t });
         await Member.create({
-          user_id: userId,
+          user_id: user_id,
           blog_id: blog.id,
           role: 1
         }, { transaction: t });
@@ -195,7 +195,7 @@ module.exports = {
   },
   async destroy(req, res, next) {
     try {
-      let { id } = req.body;
+      let { id } = req.params;
       let blog = await Blog.findByPk(id);
       if (!blog) {
         return res.status(404).json({ error: 'Blog not found' });

@@ -20,7 +20,7 @@ module.exports = {
       });
 
       let data = preferences.map(pref => ({
-        keyword: pref.keyword,
+        keyword: pref,
         user_id
       }));
 

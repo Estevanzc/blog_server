@@ -1,5 +1,5 @@
 const controller = require('./controller');
-const { Sequelize } = require('sequelize');
+const { Sequelize, where } = require('sequelize');
 const { Blog, Member, Category, User, Comment, Follower, Member_request, Notification, Post_content, Post_like, Post_view, Post_tag, Tag, Post, Preference } = require('../../models');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
@@ -23,7 +23,7 @@ module.exports = {
   async destroy(req, res, next) {
     try {
       const user_id = req.user.id;
-      const { id } = req.body;
+      const { id } = req.params;
       const notification = await Notification.findByPk(id);
       if (!notification) {
         return res.status(404).json({
@@ -38,6 +38,21 @@ module.exports = {
       }
       return res.status(403).json({
         error: "Permission denied"
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+  async destroyAll(req, res, next) {
+    try {
+      const user_id = req.user.id;
+      await Notification.destroy({
+        where: {
+          user_id: user_id,
+        }
+      })
+      return res.status(202).json({
+        message: "Notifications deleted successfully"
       });
     } catch (err) {
       next(err);
