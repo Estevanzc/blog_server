@@ -8,6 +8,7 @@ const fs = require('fs/promises');
 const path = require('path');
 const { Blog, Member, Category, User, Comment, Follower, Member_request, Notification, Post_content, Post_like, Post_view, Post_tag, Tag, Post, Preference } = require('../../models');
 const controller = require('../controllers/controller');
+const JWT_SECRET = process.env.JWT_SECRET;
 
 module.exports = {
   async profile(req, res, next) {
@@ -55,7 +56,7 @@ module.exports = {
   },
   async register(req, res, next) {
     try {
-      const { name, email, password } = req.body;
+      const { name, email, password, birth } = req.body;
 
       const userExists = await User.findOne({ where: { email } });
       if (userExists) {
@@ -67,7 +68,8 @@ module.exports = {
       const user = await User.create({
         name,
         email,
-        password: hashedPassword
+        password: hashedPassword,
+        birth
       });
 
       return res.status(201).json({
@@ -87,7 +89,6 @@ module.exports = {
       if (!user) {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
-
       const passwordMatch = await bcrypt.compare(password, user.password);
       if (!passwordMatch) {
         return res.status(401).json({ error: 'Invalid credentials' });
@@ -124,7 +125,9 @@ module.exports = {
         birth,
         description
       });
-      return res.status(202).send();
+      return res.status(202).json({
+        message: "Profile data updated successfully"
+      });
     } catch (err) {
       next(err)
     }
@@ -172,7 +175,7 @@ module.exports = {
   async destroy(req, res, next) {
     try {
       const { id } = req.params;
-
+      let user_id = req.user.id
       const user = await User.findByPk(id);
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
