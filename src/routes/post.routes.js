@@ -8,12 +8,16 @@ router.get('/home', postController.home);
 router.get('/popular', postController.popular);
 router.get('/recents', postController.recents);
 router.get('/topics', postController.topics);
+router.post('/store', postController.store);
+router.post('/image/upload', postController.imageContentUpload);
+router.post('/like', postController.like);
+router.put('/update', postController.update);
+router.delete('/destroy', postController.destroy);
 
 module.exports = router;
 
 /*
 const authMiddleware = require('../middlewares/authMiddleware');
 
-router.get('/profile', authMiddleware, userController.profile);
-
+router.post('/profile', authMiddleware, userController.profile);
 */

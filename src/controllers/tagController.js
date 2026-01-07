@@ -41,7 +41,6 @@ module.exports = {
     }
   },
   async store(tags, post_id, transaction) {
-    const transaction = await sequelize.transaction();
     try {
       await Post_tag.destroy({
         where: {
