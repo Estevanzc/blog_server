@@ -41,64 +41,55 @@ module.exports = {
     }
   },
   async store(tags, post_id, transaction) {
-    try {
-      await Post_tag.destroy({
-        where: {
-          post_id: post_id
-        }
-      })
-      const normalizedNames = [...new Set(
-        tags.map(t => t.trim().toLowerCase())
-      )];
+    if (!transaction) {
+      throw new Error('Transaction is required');
+    }
 
-      if (normalizedNames.length === 0) {
-        await Post_tag.destroy({
-          where: { post_id },
-          transaction
-        });
-        return [];
-      }
-      const existingTags = await Tag.findAll({
-        where: { name: normalizedNames },
-        transaction
-      });
+    const normalizedNames = [...new Set(
+      tags.map(t => t.trim().toLowerCase())
+    )];
 
-      const existingMap = new Map(
-        existingTags.map(tag => [tag.name, tag])
-      );
-      const missing = normalizedNames
-        .filter(name => !existingMap.has(name))
-        .map(name => ({ name }));
+    await Post_tag.destroy({
+      where: { post_id },
+      transaction
+    });
 
-      let createdTags = [];
-      if (missing.length > 0) {
-        createdTags = await Tag.bulkCreate(missing, {
-          transaction,
-          returning: true
-        });
-      }
-      const allTags = [...existingTags, ...createdTags];
-      let tag_ids = allTags.map(tag => tag.id)
-      let post_tags = tag_ids.map(tag_id => ({
-        post_id: post_id,
-        tag_id: tag_id
-      }));
-      if (post_tags.length > 0) {
-        await Post_tag.bulkCreate(post_tags, {
-          transaction
-        });
-      }
-      await transaction.commit();
+    if (normalizedNames.length === 0) {
+      return [];
+    }
 
-      return res.status(200).json({
-        message: "Post tags created successfully"
-      });
+    const existingTags = await Tag.findAll({
+      where: { name: normalizedNames },
+      transaction
+    });
 
-    } catch (error) {
-      await transaction.rollback();
-      return res.status(500).json({
-        error: 'Failed to process tags'
+    const existingMap = new Map(
+      existingTags.map(tag => [tag.name, tag])
+    );
+
+    const missing = normalizedNames
+      .filter(name => !existingMap.has(name))
+      .map(name => ({ name }));
+
+    let createdTags = [];
+    if (missing.length > 0) {
+      createdTags = await Tag.bulkCreate(missing, {
+        transaction,
+        returning: true
       });
     }
-  },
+
+    const allTags = [...existingTags, ...createdTags];
+
+    const post_tags = allTags.map(tag => ({
+      post_id,
+      tag_id: tag.id
+    }));
+
+    if (post_tags.length > 0) {
+      await Post_tag.bulkCreate(post_tags, { transaction });
+    }
+
+    return allTags;
+  }
 };

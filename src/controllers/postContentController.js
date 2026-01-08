@@ -11,7 +11,7 @@ const { Op, Sequelize, where } = require('sequelize');
 const UPLOAD_ROOT = path.resolve(process.cwd(), "uploads");
 
 module.exports = {
-  async destroyContent(post_id, transaction = null) {
+  async destroyContent(post_id, transaction) {
     const contents = await Post_content.findAll({
       where: { post_id: post_id },
       attributes: ["id", "type", "content"],

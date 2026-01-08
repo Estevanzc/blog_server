@@ -853,48 +853,44 @@ module.exports = {
     }
   },
   async store(req, res, next) {
+    let transaction;
     try {
-      let { title, subtitle, summary, blog_id, contents, tags } = req.body
-      let user_id = req.user.id
-      let transaction = await sequelize.transaction()
-      let member = await Member.findOne({
-        where: {
-          blog_id,
-          user_id
-        },
+      transaction = await sequelize.transaction();
+
+      const { title, subtitle, summary, blog_id, contents, tags } = req.body;
+      const user_id = req.user.id;
+      const member = await Member.findOne({
+        where: { blog_id, user_id },
         transaction
-      })
+      });
       if (!member) {
-        await transaction.rollback()
+        await transaction.rollback();
         return res.status(403).json({
           error: 'You are not a member of the blog'
-        })
+        });
       }
-      let post = await Post.create(
-        {
-          title,
-          subtitle,
-          summary,
-          blog_id,
-          member_id: member.id
-        },
-        { transaction }
-      )
-      tags = await tagController.store(tags, post.id, transaction)
+      const post = await Post.create({
+        title,
+        subtitle,
+        summary,
+        blog_id,
+        member_id: member.id
+      }, { transaction });
+      await tagController.store(tags, post.id, transaction);
       const blocks = contents.map(block => ({
         type: block.type,
         content: block.content,
         order: block.order,
-        post_id: post.id,
-      }))
-      await Post_content.bulkCreate(blocks, { transaction })
-      await transaction.commit()
-      return res.status(201).json({
-        id: post.id
-      })
+        post_id: post.id
+      }));
+      await Post_content.bulkCreate(blocks, { transaction });
+      await transaction.commit();
+      return res.status(201).json({ id: post.id });
     } catch (err) {
-      await transaction.rollback()
-      next(err)
+      if (transaction) {
+        await transaction.rollback();
+      }
+      next(err);
     }
   },
   async imageContentUpload(req, res, next) {
@@ -915,61 +911,65 @@ module.exports = {
     }
   },
   async update(req, res, next) {
-    const transaction = await sequelize.transaction()
+    let transaction;
 
     try {
-      let { title, subtitle, summary, contents, tags, post_id } = req.body
-      let user_id = req.user.id
-      let post = await Post.findOne({
+      transaction = await sequelize.transaction();
+      const { title, subtitle, summary, contents, tags, post_id } = req.body;
+      const user_id = req.user.id;
+      const post = await Post.findOne({
         where: { id: post_id },
         include: {
           model: Member,
+          as: "member",
           required: true,
-          where: { user_id: user_id }
+          where: { user_id }
         },
         transaction
-      })
-
+      });
       if (!post) {
-        await transaction.rollback()
+        await transaction.rollback();
         return res.status(403).json({
           error: 'You are not allowed to edit this post'
-        })
+        });
       }
       if (!Array.isArray(contents)) {
-        await transaction.rollback()
+        await transaction.rollback();
         return res.status(400).json({
           error: 'Invalid contents'
-        })
+        });
       }
       await post.update(
         { title, subtitle, summary },
         { transaction }
-      )
-      await postContentController.destroyContent(post_id, transaction)
-      let blocks = contents.map((block, index) => ({
-        post_id: post_id,
+      );
+      await postContentController.destroyContent(post_id, transaction);
+      const blocks = contents.map((block, index) => ({
+        post_id,
         type: block.type,
         content: block.content,
         order: index
-      }))
-      tags = await tagController.store(tags, post.id, transaction)
-      await Post_content.bulkCreate(blocks, { transaction })
-      await transaction.commit()
-
-      return res.sendStatus(204)
-
+      }));
+      await tagController.store(tags, post.id, transaction);
+      await Post_content.bulkCreate(blocks, { transaction });
+      await transaction.commit();
+      return res.status(203).json({
+        message: "Post updated successfully"
+      });
     } catch (err) {
-      await transaction.rollback()
-      next(err)
+      if (transaction) {
+        await transaction.rollback();
+      }
+      next(err);
     }
   },
   async destroy(req, res, next) {
-    const transaction = await sequelize.transaction();
+    let transaction;
     try {
+      transaction = await sequelize.transaction();
       const user_id = req.user.id;
-      const { post_id } = req.body;
-      const post = await Post.findByPk(post_id, { transaction });
+      const { id } = req.params;
+      const post = await Post.findByPk(id, { transaction });
       if (!post) {
         await transaction.rollback();
         return res.status(404).json({
@@ -989,20 +989,23 @@ module.exports = {
           error: "You are not allowed to delete this post"
         });
       }
-      await postContentController.destroyContent(post_id, transaction);
+      await postContentController.destroyContent(id, transaction);
       await post.destroy({ transaction });
-
       await transaction.commit();
-      return res.status(204).send();
+      return res.status(202).json({
+        message: "Post deleted successfully"
+      });
     } catch (err) {
-      await transaction.rollback();
+      if (transaction) {
+        await transaction.rollback();
+      }
       next(err);
     }
   },
   async like(req, res, next) {
     try {
       const user_id = req.user.id;
-      const { id } = req.body;
+      const { id } = req.params;
 
       const post = await Post.findByPk(id);
       if (!post) {
