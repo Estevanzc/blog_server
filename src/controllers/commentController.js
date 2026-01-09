@@ -24,6 +24,24 @@ module.exports = {
         user_id: user_id,
         post_id: post_id,
       })
+
+      const comment_count = await Comment.count({
+        where: { post_id }
+      });
+      if ([10, 100, 1000].includes(comment_count)) {
+        const adminMember = await Member.findOne({
+          where: {
+            blog_id: post.blog_id,
+            admin: true
+          }
+        });
+
+        await Notification.create({
+          user_id: adminMember.user_id,
+          message: `Post "${post.title}" reached ${comment_count} comments`,
+          link: "/"
+        });
+      }
       return res.status(201).json({
         message: "Comment created successfully"
       })

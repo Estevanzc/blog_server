@@ -82,6 +82,22 @@ module.exports = {
         user_id: user_id,
         post_id: post.id
       })
+      const view_count = await Post_view.count({
+        where: { post_id: post.id }
+      });
+      if ([10, 100, 1000].includes(view_count)) {
+        const adminMember = await Member.findOne({
+          where: {
+            blog_id: post.blog_id,
+            admin: true
+          }
+        });
+        await Notification.create({
+          user_id: adminMember.user_id,
+          message: `Post "${post.title}" reached ${view_count} views`,
+          link: "/"
+        });
+      }
 
       const comments = await Comment.findAll({
         where: { post_id: id },
@@ -1024,6 +1040,22 @@ module.exports = {
           post_id: post.id,
           user_id: user_id
         });
+        const like_count = await Post_like.count({
+          where: { post_id: post.id }
+        });
+        if ([10, 100, 1000].includes(like_count)) {
+          const adminMember = await Member.findOne({
+            where: {
+              blog_id: post.blog_id,
+              admin: true
+            }
+          });
+          await Notification.create({
+            user_id: adminMember.user_id,
+            message: `Post "${post.title}" reached ${like_count} likes`,
+            link: "/"
+          });
+        }
         return res.json({ message: "Liked successfully!" });
       } else {
         await like.destroy();
