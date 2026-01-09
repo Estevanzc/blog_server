@@ -16,7 +16,7 @@ module.exports = {
       let post = await Post.findByPk(post_id)
       if (!post) {
         return res.status(404).json({
-          message: "Post not found"
+          error: "Post not found"
         })
       }
       let comment = await Comment.create({
@@ -38,7 +38,7 @@ module.exports = {
       let comment = await Comment.findByPk(id)
       if (!comment) {
         return res.status(404).json({
-          message: "Comment not found"
+          error: "Comment not found"
         })
       }
       if (comment.user_id != user_id) {
@@ -61,8 +61,15 @@ module.exports = {
       let user_id = req.user.id
       let { id } = req.params;
       let comment = await Comment.findByPk(id);
-      if (!comment || comment.user_id !== user_id) {
-        return res.status(!comment ? 404 : 403).json({ error: 'comment not found or current user is not the owner of the comment' });
+      if (!comment) {
+        return res.status(404).json({
+          error: 'Comment not found'
+        });
+      }
+      if (comment.user_id !== user_id && !req.user.admin) {
+        return res.status(403).json({
+          error: 'Access denied'
+        });
       }
       await comment.destroy()
       return res.json({ message: "Comment deleted successfully" })

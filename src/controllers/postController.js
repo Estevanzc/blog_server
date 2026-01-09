@@ -744,9 +744,9 @@ module.exports = {
             {
               model: Tag,
               as: 'tags',
-              where: { name: topic }, // filter by Tag.name (or slug if you have it)
+              where: { name: topic },
               attributes: ['id', 'name'],
-              through: { attributes: [] } // hide join table
+              through: { attributes: [] }
             },
             {
               model: Member,

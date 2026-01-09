@@ -77,7 +77,7 @@ module.exports = {
 
       if (!name || !subname || !description || !category) {
         return res.status(400).json({
-          message: 'Missing required fields'
+          error: 'Missing required fields'
         });
       }
 
@@ -122,7 +122,7 @@ module.exports = {
       } = req.body;
       if (!id || !name || !subname || !description || !category) {
         return res.status(400).json({
-          message: 'Missing required fields'
+          error: 'Missing required fields'
         });
       }
       let blog = await Blog.findByPk(id);
@@ -130,6 +130,18 @@ module.exports = {
         return res.status(404).json({
           error: "Blog not found"
         })
+      }
+      const admin_member = await Member.findOne({
+        where: {
+          user_id: req.user.id,
+          blog_id: id,
+          role: 1
+        }
+      });
+      if (!admin_member) {
+        return res.status(403).json({
+          error: 'Access denied'
+        });
       }
       let category_id = await Category.findOne({
         where: { name: category }
@@ -161,6 +173,18 @@ module.exports = {
       if (!blog) {
         return res.status(404).json({ error: 'Blog not found' });
       }
+      const admin_member = await Member.findOne({
+        where: {
+          user_id: req.user.id,
+          blog_id: id,
+          role: 1
+        }
+      });
+      if (!admin_member) {
+        return res.status(403).json({
+          error: 'Access denied'
+        });
+      }
 
       if (!req.file) {
         return res.status(400).json({ error: 'No file uploaded' });
@@ -181,6 +205,18 @@ module.exports = {
       if (!blog) {
         return res.status(404).json({ error: 'Blog not found' });
       }
+      const admin_member = await Member.findOne({
+        where: {
+          user_id: req.user.id,
+          blog_id: id,
+          role: 1
+        }
+      });
+      if (!admin_member) {
+        return res.status(403).json({
+          error: 'Access denied'
+        });
+      }
 
       if (!req.file) {
         return res.status(400).json({ error: 'No file uploaded' });
@@ -199,6 +235,18 @@ module.exports = {
       let blog = await Blog.findByPk(id);
       if (!blog) {
         return res.status(404).json({ error: 'Blog not found' });
+      }
+      const admin_member = await Member.findOne({
+        where: {
+          user_id: req.user.id,
+          blog_id: id,
+          role: 1
+        }
+      });
+      if (!admin_member) {
+        return res.status(403).json({
+          error: 'Access denied'
+        });
       }
       await blog.destroy()
       return res.json({ message: "Blog deleted successfully" })

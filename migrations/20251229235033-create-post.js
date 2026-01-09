@@ -20,12 +20,12 @@ module.exports = {
       },
       member_id: {
         type: Sequelize.INTEGER,
-        allowNull: false,
+        allowNull: true,
         references: {
           model: "Members",
           key: "id"
         },
-        onDelete: "CASCADE",
+        onDelete: "SET NULL",
         onUpdate: "CASCADE",
       },
       blog_id: {

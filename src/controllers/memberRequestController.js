@@ -12,6 +12,18 @@ module.exports = {
   async blog_requests(req, res, next) {
     try {
       let { id } = req.params
+      const admin_member = await Member.findOne({
+        where: {
+          user_id: req.user.id,
+          blog_id: id,
+          role: 1
+        }
+      });
+      if (!admin_member) {
+        return res.status(403).json({
+          error: 'Access denied'
+        });
+      }
       let requests = await Member_request.findAll({
         where: { blog_id: id },
         include: [{
@@ -27,6 +39,11 @@ module.exports = {
   async user_requests(req, res, next) {
     try {
       let { id } = req.params
+      if (id != req.user.id) {
+        res.status(403).json({
+          error: "Access denied"
+        })
+      }
       let requests = await Member_request.findAll({
         where: { user_id: id },
         include: [{
@@ -47,23 +64,34 @@ module.exports = {
       if (!blog) {
         return res.status(404).json({ error: "Blog not found" });
       }
-      const request = await Member_request.create({
-        user_id: user_id,
-        blog_id: blog.id
-      });
-      const admin = await Member.findOne({
+      const member = await Member.findOne({
         where: {
-          blog_id: blog.id,
-          role: 1
+          user_id: user_id,
+          blog_id: id,
         }
       });
-      await Notification.create({
-        user_id: admin.user_id,
-        name: `${req.user.name} wants to join ${blog.name}`,
-        link: `/`
-      });
+      if (!member) {
+        const request = await Member_request.create({
+          user_id: user_id,
+          blog_id: blog.id
+        });
+        const admin = await Member.findOne({
+          where: {
+            blog_id: blog.id,
+            role: 1
+          }
+        });
+        await Notification.create({
+          user_id: admin.user_id,
+          name: `${req.user.name} wants to join ${blog.name}`,
+          link: `/`
+        });
 
-      return res.json(request);
+        return res.json(request);
+      }
+      res.status(409).json({
+        error: "User already is a member of the blog"
+      })
     } catch (err) {
       next(err);
     }

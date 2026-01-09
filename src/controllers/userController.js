@@ -119,15 +119,18 @@ module.exports = {
       if (!user) {
         return res.status(404).json({ error: "User not found" })
       }
-      await user.update({
-        name,
-        email,
-        birth,
-        description
-      });
-      return res.status(202).json({
-        message: "Profile data updated successfully"
-      });
+      if (req.user.id == id) {
+        await user.update({
+          name,
+          email,
+          birth,
+          description
+        });
+        return res.status(202).json({
+          message: "Profile data updated successfully"
+        });
+      }
+      return res.status(403).json({ error: "Access denied" })
     } catch (err) {
       next(err)
     }
@@ -136,10 +139,6 @@ module.exports = {
     try {
       const user_id = req.user.id;
       const user = await User.findByPk(user_id);
-
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' });
-      }
 
       if (!req.file) {
         return res.status(400).json({ error: 'No file uploaded' });
@@ -157,10 +156,6 @@ module.exports = {
       const user_id = req.user.id;
       const user = await User.findByPk(user_id);
 
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' });
-      }
-
       if (!req.file) {
         return res.status(400).json({ error: 'No file uploaded' });
       }
@@ -175,44 +170,40 @@ module.exports = {
   async destroy(req, res, next) {
     try {
       const { id } = req.params;
-      let user_id = req.user.id
       const user = await User.findByPk(id);
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' });
-      }
+      if (req.user.id == id || req.user.admin) {
+        if (user.photo) {
+          const photoPath = path.resolve(
+            __dirname,
+            '..',
+            '..',
+            '..',
+            user.photo.replace('/', '')
+          );
 
-      if (user.photo) {
-        const photoPath = path.resolve(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          user.photo.replace('/', '')
-        );
-
-        try {
-          await fs.unlink(photoPath);
-        } catch (err) {
+          try {
+            await fs.unlink(photoPath);
+          } catch (err) {
+          }
         }
-      }
-      if (user.banner) {
-        const bannerPath = path.resolve(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          user.banner.replace('/', '')
-        );
+        if (user.banner) {
+          const bannerPath = path.resolve(
+            __dirname,
+            '..',
+            '..',
+            '..',
+            user.banner.replace('/', '')
+          );
 
-        try {
-          await fs.unlink(bannerPath);
-        } catch (err) {
+          try {
+            await fs.unlink(bannerPath);
+          } catch (err) {
+          }
         }
+        await user.destroy();
+        return res.status(204).send();
       }
-
-      await user.destroy();
-
-      return res.status(204).send();
+      return res.status(403).json({ error: 'Access denied' });
     } catch (err) {
       next(err);
     }

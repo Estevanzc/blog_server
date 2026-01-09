@@ -45,9 +45,24 @@ module.exports = {
       const request = await Member_request.findByPk(id);
       if (!request) {
         return res.status(404).json({
-          message: "Membership Request not found"
+          error: "Membership Request not found"
         });
       }
+
+      const user_id = req.user.id;
+      const member = await Member.findOne({
+        where: {
+          user_id: user_id,
+          blog_id: request.blog_id,
+          role: 1
+        }
+      });
+      if (!member) {
+        return res.status(403).json({
+          error: 'Access denied'
+        });
+      }
+
       await Member.create({
         user_id: request.user_id,
         blog_id: request.blog_id,
@@ -70,6 +85,18 @@ module.exports = {
         return res.json({
           error: "Membership not found or unable to be destroyed"
         })
+      }
+      const admin_member = await Member.findOne({
+        where: {
+          user_id: user_id,
+          blog_id: member.blog_id,
+          role: 1
+        }
+      });
+      if (!admin_member) {
+        return res.status(403).json({
+          error: 'Access denied'
+        });
       }
       await member.destroy()
       return res.json({ message: "Membership deleted successfully" })
