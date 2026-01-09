@@ -56,13 +56,17 @@ module.exports = {
   },
   async register(req, res, next) {
     try {
-      const { name, email, password, birth } = req.body;
+      const { name, email, password, password_confirmation, birth } = req.body;
 
       const userExists = await User.findOne({ where: { email } });
       if (userExists) {
         return res.status(400).json({ error: 'User already exists' });
       }
-
+      if (password != password_confirmation) {
+        return res.status(400).json({
+          error: "Password and its confirmation doesn't match"
+        })
+      }
       const hashedPassword = await bcrypt.hash(password, 10);
 
       const user = await User.create({
@@ -207,5 +211,20 @@ module.exports = {
     } catch (err) {
       next(err);
     }
-  }
+  },
+  async dark_mode(req, res, next) {
+    try {
+      const user = await User.findByPk(req.user.id);
+      const newDarkMode = !user.dark_mode;
+      await user.update({
+        dark_mode: newDarkMode
+      });
+      return res.status(200).json({
+        message: `Color mode set to ${newDarkMode ? "dark" : "light"}`,
+        dark_mode: newDarkMode
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
 };

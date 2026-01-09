@@ -10,6 +10,7 @@ router.get('/membering/:id', memberController.user_membering);
 router.get('/posts/:id', postController.user_posts);
 router.get('/requests/:id', memberRequestController.user_requests);
 router.get('/notifications/:id', authMiddleware, notificationController.user_notifications);
+router.get('/dark', authMiddleware, userController.dark_mode);
 router.post('/register', userController.register);
 router.post('/login', userController.login);
 router.post('/preferences/store', authMiddleware, preferenceController.store);

@@ -16,14 +16,35 @@ module.exports = (sequelize, DataTypes) => {
     name: {
       type: DataTypes.STRING,
       allowNull: false,
+      validate: {
+        notEmpty: true,
+        len: {
+          args: [1, 100],
+          msg: "Name must have length between 1 and 100"
+        }
+      }
     },
     subname: {
       type: DataTypes.STRING,
       allowNull: false,
+      validate: {
+        notEmpty: true,
+        len: {
+          args: [1, 100],
+          msg: "Subname must have length between 1 and 100"
+        }
+      }
     },
     description: {
       type: DataTypes.TEXT,
       allowNull: false,
+      validate: {
+        hasMinLength(value) {
+          if (value.length < 10) {
+            throw new Error("Description must be at least 10 characters long");
+          }
+        },
+      }
     },
     category_id: {
       type: DataTypes.INTEGER,

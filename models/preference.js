@@ -11,7 +11,14 @@ module.exports = (sequelize, DataTypes) => {
   Preference.init({
     keyword: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+        len: {
+          args: [1, 50],
+          msg: "Keyword must have length between 1 and 50"
+        }
+      }
     },
     user_id: {
       type: DataTypes.INTEGER,

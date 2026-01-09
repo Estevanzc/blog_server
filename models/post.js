@@ -25,14 +25,35 @@ module.exports = (sequelize, DataTypes) => {
     title: {
       type: DataTypes.STRING,
       allowNull: false,
+      validate: {
+        notEmpty: true,
+        len: {
+          args: [1, 100],
+          msg: "Title must have length between 1 and 100"
+        }
+      }
     },
     subtitle: {
       type: DataTypes.STRING,
       allowNull: false,
+      validate: {
+        notEmpty: true,
+        len: {
+          args: [1, 100],
+          msg: "Subtitle must have length between 1 and 100"
+        }
+      }
     },
     summary: {
       type: DataTypes.TEXT,
-      allowNull: false
+      allowNull: false,
+      validate: {
+        hasMinLength(value) {
+          if (value.length < 20) {
+            throw new Error("Summary must be at least 20 characters long");
+          }
+        },
+      }
     },
     member_id: {
       type: DataTypes.INTEGER,
