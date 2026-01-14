@@ -1004,7 +1004,9 @@ module.exports = {
         },
         transaction
       });
-      if (!member || member.role !== 1) {
+      let post_member = await Member.findByPk(post.member_id)
+      let isAuthor = post_member && post_member.user_id == user_id
+      if (!member || (member.role !== 1 && !isAuthor)) {
         await transaction.rollback();
         return res.status(403).json({
           error: "You are not allowed to delete this post"
