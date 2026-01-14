@@ -6,7 +6,7 @@ const uploadConfig = require('../config/update');
 const upload = multer(uploadConfig);
 const fs = require('fs/promises');
 const path = require('path');
-const { Op, Sequelize } = require('sequelize');
+const { Op, Sequelize, where } = require('sequelize');
 
 module.exports = {
   async search(req, res, next) {
@@ -19,9 +19,15 @@ module.exports = {
         });
       }
       if (user_id) {
+        await User_search.destroy({
+          where: {
+            user_id,
+            name: search_str
+          }
+        });
         await User_search.create({
-          name: search_str,
-          user_id: user_id,
+          user_id,
+          name: search_str
         });
       }
       const posts = await Post.findAll({
@@ -71,4 +77,48 @@ module.exports = {
       next(err)
     }
   },
+  async user_searches(req, res, next) {
+    try {
+      let user_id = req.user?.id ?? null;
+      var searches = []
+      if (user_id) {
+        searches = await User_search.findAll({
+          where: {
+            user_id: user_id
+          },
+          limit: 10,
+          order: [["createdAt", "DESC"]],
+        });
+      }
+      return res.status(200).json({
+        searches
+      })
+    } catch (err) {
+      next(err)
+    }
+  },
+  async destroy(req, res, next) {
+    try {
+      const { id } = req.params;
+      const user_id = req.user.id;
+      const search = await User_search.findOne({
+        where: {
+          id: id,
+          user_id: user_id
+        }
+      });
+      if (!search) {
+        return res.status(404).json({
+          error: "Search not found"
+        });
+      }
+
+      await search.destroy();
+
+      return res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
+  }
+
 };

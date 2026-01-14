@@ -1,6 +1,7 @@
 const express = require('express');
 const authMiddleware = require('../middlewares/authMiddleware');
-const {userController, followerController, memberController, postController, memberRequestController, notificationController, preferenceController} = require('../controllers/');
+const optionalAuthMiddleware = require('../middlewares/optionalAuthMiddleware');
+const {userController, followerController, memberController, postController, memberRequestController, notificationController, preferenceController, searchController} = require('../controllers/');
 
 const router = express.Router();
 
@@ -10,6 +11,7 @@ router.get('/membering/:id', memberController.user_membering);
 router.get('/posts/:id', postController.user_posts);
 router.get('/requests/:id', memberRequestController.user_requests);
 router.get('/notifications/:id', authMiddleware, notificationController.user_notifications);
+router.get('/searches', optionalAuthMiddleware, searchController.user_searches);
 router.get('/dark', authMiddleware, userController.dark_mode);
 router.post('/register', userController.register);
 router.post('/login', userController.login);

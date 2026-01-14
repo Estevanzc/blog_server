@@ -16,6 +16,13 @@ module.exports = (sequelize, DataTypes) => {
     name: {
       type: DataTypes.STRING,
       allowNull: false,
+      unique: true,
+      validate: {
+        len: {
+          args: [3, 254],
+          msg: "Name must have length between 3 and 254"
+        }
+      }
     }
   }, {
     sequelize,
