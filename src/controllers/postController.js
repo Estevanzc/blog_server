@@ -745,11 +745,16 @@ module.exports = {
   async topics(req, res, next) {
     try {
       const topics = [
+        'ai',
+        'business',
+        'health',
+        'education',
+        'food',
         'technology',
-        'culture-and-society',
         'science',
+        'art',
+        'culture',
         'politics',
-        'art'
       ];
 
       const result = {};

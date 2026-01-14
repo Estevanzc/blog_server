@@ -128,6 +128,61 @@ module.exports = {
         createdAt: new Date(),
         updatedAt: new Date(),
       },
+      {
+        name: 'technology',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        name: 'programming',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        name: 'web-development',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        name: 'science',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        name: 'art',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        name: 'culture',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        name: 'politics',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        name: 'finance',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        name: 'entertainment',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        name: 'DIY',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        name: 'lifestyle',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
     ]);
   },
 

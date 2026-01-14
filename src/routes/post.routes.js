@@ -1,10 +1,12 @@
 const express = require('express');
 const authMiddleware = require('../middlewares/authMiddleware');
-const {postController, commentController} = require('../controllers/');
+const optionalAuthMiddleware = require('../middlewares/optionalAuthMiddleware');
+const {postController, commentController, searchController} = require('../controllers/');
 
 const router = express.Router();
 
-router.get('/view/:id', postController.view);
+router.get('/view/:id', optionalAuthMiddleware, postController.view);
+router.get('/search/:search_str', optionalAuthMiddleware, searchController.search);
 router.get('/home', postController.home);
 router.get('/popular', postController.popular);
 router.get('/recents', postController.recents);

@@ -1,3 +1,4 @@
+
 module.exports = {
     blogController: require('./blogController'),
     commentController: require('./commentController'),
@@ -10,4 +11,5 @@ module.exports = {
     preferenceController: require('./preferenceController'),
     tagController: require('./tagController'),
     userController: require('./userController'),
+    searchController: require('./searchController'),
 };
