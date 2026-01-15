@@ -11,7 +11,14 @@ module.exports = (sequelize, DataTypes) => {
   Occupation.init({
     name: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
+      unique: true,
+      validate: {
+        len: {
+          args: [3, 254],
+          msg: "Name must have length between 3 and 254"
+        }
+      }
     }
   }, {
     sequelize,

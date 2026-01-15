@@ -6,7 +6,7 @@ const uploadConfig = require('../config/update');
 const upload = multer(uploadConfig);
 const fs = require('fs/promises');
 const path = require('path');
-const { Blog, Member, Category, User, Comment, Follower, Member_request, Notification, Post_content, Post_like, Post_view, Post_tag, Tag, Post, Preference } = require('../../models');
+const { Blog, Member, Category, User, Comment, Follower, Member_request, Notification, Post_content, Post_like, Post_view, Post_tag, Tag, Post, Preference, Occupation } = require('../../models');
 const controller = require('../controllers/controller');
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -67,13 +67,17 @@ module.exports = {
           error: "Password and its confirmation doesn't match"
         })
       }
+      const [user_occupation] = await Occupation.findOrCreate({
+        where: { name: occupation }
+      });
       const hashedPassword = await bcrypt.hash(password, 10);
 
       const user = await User.create({
         name,
         email,
         password: hashedPassword,
-        birth
+        birth,
+        occupation_id: user_occupation.id
       });
 
       return res.status(201).json({
@@ -118,17 +122,21 @@ module.exports = {
   },
   async update(req, res, next) {
     try {
-      let { id, name, email, birth, description } = req.body
+      let { id, name, email, birth, description, occupation } = req.body
       let user = await User.findByPk(id);
       if (!user) {
         return res.status(404).json({ error: "User not found" })
       }
+      const [user_occupation] = await Occupation.findOrCreate({
+        where: { name: occupation }
+      });
       if (req.user.id == id) {
         await user.update({
           name,
           email,
           birth,
-          description
+          description,
+          occupation_id: user_occupation.id
         });
         return res.status(202).json({
           message: "Profile data updated successfully"
