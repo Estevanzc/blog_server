@@ -32,6 +32,16 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         defaultValue: false,
       },
+      occupation_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: "Occupations",
+          key: "id",
+        },
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+      },
       admin: {
         type: Sequelize.BOOLEAN,
         defaultValue: false,

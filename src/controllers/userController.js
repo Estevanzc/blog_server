@@ -56,7 +56,7 @@ module.exports = {
   },
   async register(req, res, next) {
     try {
-      const { name, email, password, password_confirmation, birth } = req.body;
+      const { name, email, password, password_confirmation, birth, occupation } = req.body;
 
       const userExists = await User.findOne({ where: { email } });
       if (userExists) {

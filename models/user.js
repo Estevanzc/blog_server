@@ -5,6 +5,7 @@ const {
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     static associate(models) {
+      User.belongsTo(models.Occupation, { foreignKey: "occupation_id", as: "occupation" })
       User.hasMany(models.Preference, { foreignKey: "user_id", as: "preferences" })
       User.hasMany(models.Follower, { foreignKey: "user_id", as: "followers" })
       User.hasMany(models.Member, { foreignKey: "user_id", as: "members" })
@@ -77,6 +78,10 @@ module.exports = (sequelize, DataTypes) => {
     dark_mode: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
+    },
+    occupation_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
     },
     admin: {
       type: DataTypes.BOOLEAN,
