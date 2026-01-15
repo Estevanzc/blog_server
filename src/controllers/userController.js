@@ -1,5 +1,5 @@
 const bcrypt = require('bcryptjs');
-const { Sequelize } = require('sequelize');
+const { Sequelize, where } = require('sequelize');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const uploadConfig = require('../config/update');
@@ -9,6 +9,9 @@ const path = require('path');
 const { Blog, Member, Category, User, Comment, Follower, Member_request, Notification, Post_content, Post_like, Post_view, Post_tag, Tag, Post, Preference, Occupation } = require('../../models');
 const controller = require('../controllers/controller');
 const JWT_SECRET = process.env.JWT_SECRET;
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
+const { emailPage } = require('../utils/emailPage');
 
 module.exports = {
   async profile(req, res, next) {
@@ -233,6 +236,85 @@ module.exports = {
       });
     } catch (err) {
       next(err);
+    }
+  },
+  async password_recover(req, res, next) {
+    try {
+      let { email } = req.body
+      let user = await User.findOne({
+        where: {
+          email: email
+        }
+      })
+      if (!user) {
+        return res.status(404).json({
+          error: "User not found"
+        })
+      }
+      let token = crypto.randomBytes(20).toString("hex")
+      await user.update({
+        resetPasswordToken: token,
+        resetPasswordExpires: Date.now() + 3600000,
+      })
+      const transporter = nodemailer.createTransport({
+        service: "Gmail",
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASSWORD,
+        }
+      })
+
+      let resetUrl = `http://localhost:3000/resetlink/${token}`
+      let emailMessage = emailPage(user.name, resetUrl)
+      const mailOptions = {
+        to: user.email,
+        from: "wisely.assistance@gmail.com",
+        subject: "Password reset request",
+        text: `Please click this link to reset your password: ${resetUrl}`,
+        html: emailMessage
+      }
+      await transporter.sendMail(mailOptions)
+      return res.status(200).json({
+        message: "Request email sent"
+      })
+    } catch (err) {
+      next(err)
+    }
+  },
+  async password_update(req, res, next) {
+    try {
+      let {password, password_confirmation, token} = req.body
+      let user = await User.findOne({
+        where: {
+          resetPasswordToken: token
+        }
+      })
+      if (password != password_confirmation || password.trim() == "") {
+        return res.status(400).json({
+          error: "Passwords don't match or invalid"
+        })
+      }
+      if (!user) {
+        return res.status(404).json({
+          error: "User not found or invalid token"
+        })
+      }
+      if (user.resetPasswordExpires < Date.now()) {
+        return res.status(400).json({
+          error: "Expired token"
+        })
+      }
+      let new_password = await bcrypt.hash(password, 10);
+      await user.update({
+        resetPasswordToken: null,
+        resetPasswordExpires: null,
+        password: new_password,
+      })
+      return res.status(200).json({
+        message: "Password updated successfully"
+      })
+    } catch(err) {
+      next(err)
     }
   },
 };

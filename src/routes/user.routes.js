@@ -14,6 +14,8 @@ router.get('/notifications/:id', authMiddleware, notificationController.user_not
 router.get('/searches', optionalAuthMiddleware, searchController.user_searches);
 router.get('/dark', authMiddleware, userController.dark_mode);
 router.post('/register', userController.register);
+router.post('/password/recover', userController.password_recover);
+router.post('/password/update', userController.password_update);
 router.post('/login', userController.login);
 router.post('/preferences/store', authMiddleware, preferenceController.store);
 router.put('/update/photo', authMiddleware, userController.updatePhoto);

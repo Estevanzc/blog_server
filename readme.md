@@ -50,3 +50,8 @@ trending blogs
     "name": "Estevan2",
     "birth": "2008-02-26"
     }
+
+
+teste de register e update de user
+teste de upload imagem
+recuperação de senha
