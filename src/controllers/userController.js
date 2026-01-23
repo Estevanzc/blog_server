@@ -12,6 +12,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const { emailPage } = require('../utils/emailPage');
+const { Op } = require("sequelize")
 
 module.exports = {
   async profile(req, res, next) {

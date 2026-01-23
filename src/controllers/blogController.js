@@ -7,6 +7,7 @@ const uploadConfig = require('../config/update');
 const upload = multer(uploadConfig);
 const fs = require('fs/promises');
 const path = require('path');
+const { Op } = require("sequelize")
 
 module.exports = {
   async index(req, res, next) {
@@ -53,15 +54,45 @@ module.exports = {
   },
   async user_blogs(req, res, next) {
     try {
-      let { id } = req.params
-      let blogs = await Member.findAll({
-        where: { blog_id: id },
+      let { id } = req.params;
+      const limit = parseInt(req.query.limit) || 10;
+      const cursor = req.query.cursor;
+
+      const options = {
+        where: {
+          blog_id: id
+        },
         include: [{
           model: Blog,
           as: 'blog',
-        }]
+        }],
+        order: [['id', 'DESC']],
+        limit: limit + 1
+      };
+
+      if (cursor) {
+        options.where.id = {
+          [Op.lt]: cursor
+        };
+      }
+
+      const members = await Member.findAll(options);
+
+      const hasNextPage = members.length > limit;
+
+      if (hasNextPage) {
+        members.pop();
+      }
+
+      const nextCursor = members.length > 0 ? members[members.length - 1].id : null;
+
+      return res.json({
+        data: members,
+        meta: {
+          hasNextPage,
+          nextCursor
+        }
       });
-      return res.json(blogs)
     } catch (err) {
       next(err);
     }

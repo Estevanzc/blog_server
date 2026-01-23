@@ -7,11 +7,13 @@ const uploadConfig = require('../config/update');
 const upload = multer(uploadConfig);
 const fs = require('fs/promises');
 const path = require('path');
+const { Op } = require("sequelize")
 
 module.exports = {
   async blog_requests(req, res, next) {
     try {
-      let { id } = req.params
+      let { id } = req.params;
+
       const admin_member = await Member.findOne({
         where: {
           user_id: req.user.id,
@@ -19,39 +21,98 @@ module.exports = {
           role: 1
         }
       });
+
       if (!admin_member) {
         return res.status(403).json({
           error: 'Access denied'
         });
       }
-      let requests = await Member_request.findAll({
-        where: { blog_id: id },
+
+      const limit = parseInt(req.query.limit) || 10;
+      const cursor = req.query.cursor;
+
+      const options = {
+        where: {
+          blog_id: id
+        },
         include: [{
           model: User,
           as: 'user',
-        }]
+        }],
+        order: [['id', 'DESC']],
+        limit: limit + 1
+      };
+
+      if (cursor) {
+        options.where.id = {
+          [Op.lt]: cursor
+        };
+      }
+
+      const requests = await Member_request.findAll(options);
+      const hasNextPage = requests.length > limit;
+
+      if (hasNextPage) {
+        requests.pop();
+      }
+
+      const nextCursor = requests.length > 0 ? requests[requests.length - 1].id : null;
+
+      return res.json({
+        data: requests,
+        meta: {
+          hasNextPage,
+          nextCursor
+        }
       });
-      return res.json(requests)
     } catch (err) {
       next(err);
     }
   },
   async user_requests(req, res, next) {
     try {
-      let { id } = req.params
+      let { id } = req.params;
+
       if (id != req.user.id) {
-        res.status(403).json({
+        return res.status(403).json({
           error: "Access denied"
-        })
+        });
       }
-      let requests = await Member_request.findAll({
-        where: { user_id: id },
+
+      const limit = parseInt(req.query.limit) || 10;
+      const cursor = req.query.cursor;
+      const options = {
+        where: {
+          user_id: id
+        },
         include: [{
           model: Blog,
           as: 'blog',
-        }]
+        }],
+        order: [['id', 'DESC']],
+        limit: limit + 1
+      };
+
+      if (cursor) {
+        options.where.id = {
+          [Op.lt]: cursor
+        };
+      }
+
+      const requests = await Member_request.findAll(options);
+      const hasNextPage = requests.length > limit;
+      if (hasNextPage) {
+        requests.pop();
+      }
+      const nextCursor = requests.length > 0 ? requests[requests.length - 1].id : null;
+
+      return res.json({
+        data: requests,
+        meta: {
+          hasNextPage,
+          nextCursor
+        }
       });
-      return res.json(requests)
     } catch (err) {
       next(err);
     }

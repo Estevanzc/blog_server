@@ -823,25 +823,35 @@ module.exports = {
   },
   async blog_posts(req, res, next) {
     try {
-      let { id } = req.params
-      const posts = await Post.findAll({
-        include: [
-          {
-            model: Member,
-            as: 'member',
-            where: { blog_id: id },
-            include: [
-              {
-                model: User,
-                as: 'user',
-                attributes: ['id', 'name', 'photo']
-              }
-            ]
-          }
-        ],
-        order: [['createdAt', 'DESC']]
+      let { id } = req.params;
+      const limit = parseInt(req.query.limit) || 10;
+      const cursor = req.query.cursor;
+      const options = {
+        where: {
+          blog_id: id
+        },
+        order: [['id', 'DESC']],
+        limit: limit + 1
+      };
+      if (cursor) {
+        options.where.id = {
+          [Op.lt]: cursor
+        };
+      }
+      const posts = await Post.findAll(options);
+      const hasNextPage = posts.length > limit;
+      if (hasNextPage) {
+        posts.pop();
+      }
+      const nextCursor = posts.length > 0 ? posts[posts.length - 1].id : null;
+
+      return res.json({
+        data: posts,
+        meta: {
+          hasNextPage,
+          nextCursor
+        }
       });
-      return res.json(posts)
     } catch (err) {
       next(err);
     }
@@ -850,12 +860,15 @@ module.exports = {
     try {
       const { id } = req.params;
 
-      const posts = await Post.findAll({
+      const limit = parseInt(req.query.limit) || 10;
+      const cursor = req.query.cursor;
+      const options = {
+        where: {},
         include: [
           {
             model: Member,
             as: 'member',
-            where: { blog_id: id },
+            where: { user_id: id },
             include: [
               {
                 model: User,
@@ -865,10 +878,30 @@ module.exports = {
             ],
           },
         ],
-        order: [['createdAt', 'DESC']],
-      });
+        order: [['id', 'DESC']],
+        limit: limit + 1,
+      };
+      if (cursor) {
+        options.where.id = {
+          [Op.lt]: cursor
+        };
+      }
 
-      return res.json(posts);
+      const posts = await Post.findAll(options);
+      const hasNextPage = posts.length > limit;
+
+      if (hasNextPage) {
+        posts.pop();
+      }
+      const nextCursor = posts.length > 0 ? posts[posts.length - 1].id : null;
+
+      return res.json({
+        data: posts,
+        meta: {
+          hasNextPage,
+          nextCursor
+        }
+      });
     } catch (err) {
       next(err);
     }

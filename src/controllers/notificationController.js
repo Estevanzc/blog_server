@@ -7,6 +7,7 @@ const uploadConfig = require('../config/update');
 const upload = multer(uploadConfig);
 const fs = require('fs/promises');
 const path = require('path');
+const { Op } = require("sequelize")
 
 module.exports = {
   async user_notifications(req, res, next) {
