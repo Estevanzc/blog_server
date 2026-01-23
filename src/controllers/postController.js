@@ -275,25 +275,88 @@ module.exports = {
       next(err);
     }
   },
+  async recentPosts(req, res, next) {
+    try {
+      const limit = parseInt(req.query.limit) || 10;
+      const cursor = req.query.cursor;
+
+      const options = {
+        include: [
+          {
+            model: Tag,
+            as: 'tags',
+            attributes: ['id', 'name'],
+            through: { attributes: [] }
+          },
+          {
+            model: Member,
+            as: 'member',
+            include: [
+              {
+                model: User,
+                as: 'user',
+                attributes: ['id', 'name', 'photo']
+              }
+            ]
+          }
+        ],
+        order: [['id', 'DESC']],
+        limit: limit + 1,
+        distinct: true,
+        where: {}
+      };
+
+      if (cursor) {
+        options.where.id = {
+          [Op.lt]: cursor
+        };
+      }
+
+      const posts = await Post.findAll(options);
+      const hasNextPage = posts.length > limit;
+      if (hasNextPage) {
+        posts.pop();
+      }
+      const nextCursor = posts.length > 0 ? posts[posts.length - 1].id : null;
+      return res.json({
+        data: posts,
+        meta: {
+          hasNextPage,
+          nextCursor
+        }
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
   async following_posts(req, res, next) {
     try {
-      let { id } = req.params
+      let { id } = req.params;
+
+      const limit = parseInt(req.query.limit) || 20;
+      const cursor = req.query.cursor;
+
       const followedBlogs = await Follower.findAll({
         where: { user_id: id },
         attributes: ['blog_id']
       });
-
       const blogIds = followedBlogs.map(f => f.blog_id);
 
       if (!blogIds.length) {
-        return res.json({ posts: [] });
+        return res.json({
+          data: [],
+          meta: { hasNextPage: false, nextCursor: null }
+        });
       }
-      const posts = await Post.findAll({
+
+      const options = {
+        where: {
+          blog_id: { [Op.in]: blogIds }
+        },
         include: [
           {
             model: Blog,
             as: 'blog',
-            where: { id: { [Op.in]: blogIds } },
             attributes: ['id', 'name', 'photo']
           },
           {
@@ -310,18 +373,40 @@ module.exports = {
             ]
           }
         ],
-        order: [['createdAt', 'DESC']],
-        limit: 20,
+        order: [['id', 'DESC']],
+        limit: limit + 1,
         distinct: true
+      };
+
+      if (cursor) {
+        options.where.id = {
+          [Op.lt]: cursor
+        };
+      }
+
+      const posts = await Post.findAll(options);
+      const hasNextPage = posts.length > limit;
+      if (hasNextPage) {
+        posts.pop();
+      }
+      const nextCursor = posts.length > 0 ? posts[posts.length - 1].id : null;
+      return res.json({
+        data: posts,
+        meta: {
+          hasNextPage,
+          nextCursor
+        }
       });
-      return res.json(posts)
     } catch (err) {
       next(err);
     }
   },
   async keywordPosts(req, res, next) {
     try {
-      let { id } = req.params
+      let { id } = req.params;
+
+      const limit = parseInt(req.query.limit) || 20;
+      const cursor = req.query.cursor;
       const preferences = await Preference.findAll({
         where: { user_id: id },
         attributes: ['keyword']
@@ -330,8 +415,12 @@ module.exports = {
       const keywords = preferences.map(p => p.keyword);
 
       if (!keywords.length) {
-        return res.json({ posts: [] });
+        return res.json({
+          data: [],
+          meta: { hasNextPage: false, nextCursor: null }
+        });
       }
+
       const searchConditions = keywords.map(keyword => ({
         [Op.or]: [
           { title: { [Op.iLike]: `%${keyword}%` } },
@@ -339,7 +428,8 @@ module.exports = {
           { summary: { [Op.iLike]: `%${keyword}%` } }
         ]
       }));
-      const posts = await Post.findAll({
+
+      const options = {
         where: {
           [Op.or]: searchConditions
         },
@@ -358,20 +448,46 @@ module.exports = {
             ]
           }
         ],
-        order: [['createdAt', 'DESC']],
+        order: [['id', 'DESC']],
         distinct: true,
-        limit: 20
+        limit: limit + 1
+      };
+      if (cursor) {
+        options.where.id = {
+          [Op.lt]: cursor
+        };
+      }
+
+      const posts = await Post.findAll(options);
+      const hasNextPage = posts.length > limit;
+
+      if (hasNextPage) {
+        posts.pop();
+      }
+
+      const nextCursor = posts.length > 0 ? posts[posts.length - 1].id : null;
+
+      return res.json({
+        data: posts,
+        meta: {
+          hasNextPage,
+          nextCursor
+        }
       });
-      return res.json(posts);
     } catch (err) {
       next(err);
     }
   },
   async postHistory(req, res, next) {
     try {
-      let { id } = req.params
-      const viewedPosts = await Post_view.findAll({
-        where: { user_id: id },
+      let { id } = req.params;
+      const limit = parseInt(req.query.limit) || 20;
+      const cursor = req.query.cursor;
+
+      const options = {
+        where: {
+          user_id: id
+        },
         include: [
           {
             model: Post,
@@ -393,10 +509,32 @@ module.exports = {
             ]
           }
         ],
-        order: [['createdAt', 'DESC']],
-        limit: 50
+        order: [['id', 'DESC']],
+        limit: limit + 1,
+        distinct: true
+      };
+
+      if (cursor) {
+        options.where.id = {
+          [Op.lt]: cursor
+        };
+      }
+
+      const viewedPosts = await Post_view.findAll(options);
+      const hasNextPage = viewedPosts.length > limit;
+
+      if (hasNextPage) {
+        viewedPosts.pop();
+      }
+
+      const nextCursor = viewedPosts.length > 0 ? viewedPosts[viewedPosts.length - 1].id : null;
+      return res.json({
+        data: viewedPosts,
+        meta: {
+          hasNextPage,
+          nextCursor
+        }
       });
-      return res.json(viewedPosts);
     } catch (err) {
       next(err);
     }
@@ -661,6 +799,98 @@ module.exports = {
         "most_commented": most_commented,
         "trending_tags": trending_tags
       })
+    } catch (err) {
+      next(err);
+    }
+  },
+  async trendingPosts(req, res, next) {
+    try {
+      let since = new Date();
+      since.setDate(since.getDate() - 30);
+
+      const page = req.query.cursor ? parseInt(req.query.cursor) : 0;
+      const limit = Math.min(parseInt(req.query.limit) || 20, 50);
+      const offset = page * limit;
+
+      const scoreLiteral = Sequelize.literal(
+        '(COUNT(DISTINCT views.id) * 1 + COUNT(DISTINCT likes.id) * 3 + COUNT(DISTINCT comments.id) * 2)'
+      );
+
+      const trending_posts = await Post.findAll({
+        where: {
+          createdAt: {
+            [Op.gte]: since
+          }
+        },
+        attributes: {
+          include: [
+            [Sequelize.fn('COUNT', Sequelize.fn('DISTINCT', Sequelize.col('views.id'))), 'viewCount'],
+            [Sequelize.fn('COUNT', Sequelize.fn('DISTINCT', Sequelize.col('likes.id'))), 'likeCount'],
+            [Sequelize.fn('COUNT', Sequelize.fn('DISTINCT', Sequelize.col('comments.id'))), 'commentCount'],
+          ]
+        },
+        include: [
+          {
+            model: Post_view,
+            as: 'views',
+            attributes: [],
+            where: { createdAt: { [Op.gte]: since } },
+            required: false
+          },
+          {
+            model: Post_like,
+            as: 'likes',
+            attributes: [],
+            where: { createdAt: { [Op.gte]: since } },
+            required: false
+          },
+          {
+            model: Comment,
+            as: 'comments',
+            attributes: [],
+            where: { createdAt: { [Op.gte]: since } },
+            required: false
+          },
+          {
+            model: Member,
+            as: 'member',
+            include: [
+              {
+                model: User,
+                as: 'user',
+                attributes: ['id', 'name', 'photo']
+              }
+            ]
+          }
+        ],
+        group: [
+          'Post.id',
+          'member.id',
+          'member.user.id'
+        ],
+        order: [[scoreLiteral, 'DESC']],
+
+        limit: limit + 1,
+        offset: offset,
+        subQuery: false
+      });
+
+      const hasNextPage = trending_posts.length > limit;
+
+      if (hasNextPage) {
+        trending_posts.pop();
+      }
+
+      const nextCursor = hasNextPage ? page + 1 : null;
+
+      return res.json({
+        data: trending_posts,
+        meta: {
+          hasNextPage,
+          nextCursor
+        }
+      });
+
     } catch (err) {
       next(err);
     }
