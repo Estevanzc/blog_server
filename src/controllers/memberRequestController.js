@@ -73,7 +73,7 @@ module.exports = {
     try {
       let { id } = req.params;
 
-      if (id != req.user.id) {
+      if (id != req.user.id || !id) {
         return res.status(403).json({
           error: "Access denied"
         });

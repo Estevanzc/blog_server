@@ -9,7 +9,7 @@ router.get('/profile/:id', userController.profile);
 router.get('/following/:id', followerController.user_following);
 router.get('/membering/:id', memberController.user_membering);
 router.get('/posts/:id', postController.user_posts);
-router.get('/requests/:id', memberRequestController.user_requests);
+router.get('/requests/:id', authMiddleware, memberRequestController.user_requests);
 router.get('/notifications/:id', authMiddleware, notificationController.user_notifications);
 router.get('/searches', optionalAuthMiddleware, searchController.user_searches);
 router.get('/dark', authMiddleware, userController.dark_mode);

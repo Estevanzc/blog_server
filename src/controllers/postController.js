@@ -405,8 +405,9 @@ module.exports = {
     try {
       let { id } = req.params;
 
-      const limit = parseInt(req.query.limit) || 20;
+      const limit = Math.min(parseInt(req.query.limit) || 20, 50);
       const cursor = req.query.cursor;
+
       const preferences = await Preference.findAll({
         where: { user_id: id },
         attributes: ['keyword']
@@ -423,9 +424,10 @@ module.exports = {
 
       const searchConditions = keywords.map(keyword => ({
         [Op.or]: [
-          { title: { [Op.iLike]: `%${keyword}%` } },
-          { subtitle: { [Op.iLike]: `%${keyword}%` } },
-          { summary: { [Op.iLike]: `%${keyword}%` } }
+          // FIX: Changed Op.iLike to Op.like for MySQL/MariaDB support
+          { title: { [Op.like]: `%${keyword}%` } },
+          { subtitle: { [Op.like]: `%${keyword}%` } },
+          { summary: { [Op.like]: `%${keyword}%` } }
         ]
       }));
 
@@ -452,6 +454,7 @@ module.exports = {
         distinct: true,
         limit: limit + 1
       };
+
       if (cursor) {
         options.where.id = {
           [Op.lt]: cursor
@@ -469,10 +472,7 @@ module.exports = {
 
       return res.json({
         data: posts,
-        meta: {
-          hasNextPage,
-          nextCursor
-        }
+        meta: { hasNextPage, nextCursor }
       });
     } catch (err) {
       next(err);
