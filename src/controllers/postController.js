@@ -1184,9 +1184,9 @@ module.exports = {
           error: 'No image file provided'
         })
       }
-      const imagePath = await uploadImage({
+      const imagePath = await controller.saveImage({
         file: req.file
-      })
+      });
       return res.status(201).json({
         path: imagePath
       })
