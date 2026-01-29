@@ -221,7 +221,11 @@ module.exports = {
         return res.status(400).json({ error: 'No file uploaded' });
       }
 
-      await controller.imageUpload(blog, req.file, "banner");
+      await controller.imageUpload({
+        model: blog,
+        file: req.file,
+        field: 'banner'
+      });
 
       return res.status(202).send();
     } catch (err) {
@@ -253,7 +257,11 @@ module.exports = {
         return res.status(400).json({ error: 'No file uploaded' });
       }
 
-      await controller.imageUpload(blog, req.file, "photo");
+      await controller.imageUpload({
+        model: blog,
+        file: req.file,
+        field: 'photo'
+      });
 
       return res.status(202).send();
     } catch (err) {

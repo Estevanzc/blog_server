@@ -1,6 +1,7 @@
 const express = require('express');
 const authMiddleware = require('../middlewares/authMiddleware');
 const optionalAuthMiddleware = require('../middlewares/optionalAuthMiddleware');
+const upload = require('../middlewares/upload');
 const {postController, commentController, searchController} = require('../controllers/');
 
 const router = express.Router();
@@ -18,7 +19,7 @@ router.get('/list/keyword/:id', postController.keywordPosts);
 router.get('/list/history/:id', postController.postHistory);
 router.post('/comments/store', authMiddleware, commentController.store);
 router.post('/store', authMiddleware, postController.store);
-router.post('/image/upload', authMiddleware, postController.imageContentUpload);
+router.post('/image/upload', authMiddleware, upload.single("image"), postController.imageContentUpload);
 router.post('/like/:id', authMiddleware, postController.like);
 router.put('/update', authMiddleware, postController.update);
 router.put('/comments/update', authMiddleware, commentController.update);

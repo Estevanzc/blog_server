@@ -1,5 +1,6 @@
 const express = require('express');
 const authMiddleware = require('../middlewares/authMiddleware');
+const upload = require('../middlewares/upload');
 const {blogController, followerController, memberController, memberRequestController, postController } = require('../controllers/');
 
 const router = express.Router();
@@ -12,8 +13,8 @@ router.post('/members/request/send/:id', authMiddleware, memberRequestController
 router.post('/members/request/accept/:id', authMiddleware, memberController.store);
 router.post('/follow/:id', authMiddleware, followerController.follow);
 router.post('/store', authMiddleware, blogController.store);
-router.put('/update/banner', authMiddleware, blogController.updateBanner);
-router.put('/update/photo', authMiddleware, blogController.updatePhoto);
+router.put('/update/photo', authMiddleware, upload.single("photo"), blogController.updatePhoto);
+router.put('/update/banner', authMiddleware, upload.single("banner"), blogController.updateBanner);
 router.put('/update', authMiddleware, blogController.update);
 router.delete('/destroy/:id', authMiddleware, blogController.destroy);
 router.delete('/members/destroy/:id', authMiddleware, memberController.destroy);

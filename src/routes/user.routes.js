@@ -1,6 +1,7 @@
 const express = require('express');
 const authMiddleware = require('../middlewares/authMiddleware');
 const optionalAuthMiddleware = require('../middlewares/optionalAuthMiddleware');
+const upload = require('../middlewares/upload');
 const {userController, followerController, memberController, postController, memberRequestController, notificationController, preferenceController, searchController} = require('../controllers/');
 
 const router = express.Router();
@@ -18,8 +19,8 @@ router.post('/password/recover', userController.password_recover);
 router.post('/password/update', userController.password_update);
 router.post('/login', userController.login);
 router.post('/preferences/store', authMiddleware, preferenceController.store);
-router.put('/update/photo', authMiddleware, userController.updatePhoto);
-router.put('/update/banner', authMiddleware, userController.updateBanner);
+router.put('/update/photo', authMiddleware, upload.single("photo"), userController.updatePhoto);
+router.put('/update/banner', authMiddleware, upload.single("banner"), userController.updateBanner);
 router.put('/update', authMiddleware, userController.update);
 router.delete('/searches/destroy/:id', authMiddleware, searchController.destroy);
 router.delete('/notifications/destroy/all', authMiddleware, notificationController.destroyAll);

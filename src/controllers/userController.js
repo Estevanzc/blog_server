@@ -155,13 +155,14 @@ module.exports = {
     try {
       const user_id = req.user.id;
       const user = await User.findByPk(user_id);
-
       if (!req.file) {
         return res.status(400).json({ error: 'No file uploaded' });
       }
-
-      await controller.imageUpload(user, req.file);
-
+      await controller.imageUpload({
+        model: user,
+        file: req.file,
+        field: 'photo'
+      });
       return res.status(202).send();
     } catch (err) {
       next(err);
@@ -171,13 +172,14 @@ module.exports = {
     try {
       const user_id = req.user.id;
       const user = await User.findByPk(user_id);
-
       if (!req.file) {
         return res.status(400).json({ error: 'No file uploaded' });
       }
-
-      await controller.imageUpload(user, req.file, "banner");
-
+      await controller.imageUpload({
+        model: user,
+        file: req.file,
+        field: 'banner'
+      });
       return res.status(202).send();
     } catch (err) {
       next(err);
@@ -284,7 +286,7 @@ module.exports = {
   },
   async password_update(req, res, next) {
     try {
-      let {password, password_confirmation, token} = req.body
+      let { password, password_confirmation, token } = req.body
       let user = await User.findOne({
         where: {
           resetPasswordToken: token
@@ -314,7 +316,7 @@ module.exports = {
       return res.status(200).json({
         message: "Password updated successfully"
       })
-    } catch(err) {
+    } catch (err) {
       next(err)
     }
   },
