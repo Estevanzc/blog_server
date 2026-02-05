@@ -1,4 +1,9 @@
-require('dotenv').config();
+require('dotenv').config({
+  path: process.env.NODE_ENV === 'test'
+    ? '.env.test'
+    : '.env'
+});
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -13,6 +18,11 @@ app.use(express.json());
 
 app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
 app.use('/', routes);
+
+if (process.env.NODE_ENV === 'test') {
+  app.use('/', require('./routes/test.routes'));
+}
+
 app.use(errorMiddleware);
 
 module.exports = app;

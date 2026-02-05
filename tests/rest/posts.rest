@@ -1,0 +1,4 @@
+@baseUrl = http://localhost:3000/users
+
+### User posts
+GET {{baseUrl}}/posts/1

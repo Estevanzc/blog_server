@@ -1,0 +1,4 @@
+@baseUrl = http://localhost:3000/users
+
+### Get following
+GET {{baseUrl}}/following/1
