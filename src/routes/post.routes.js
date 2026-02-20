@@ -7,7 +7,7 @@ const {postController, commentController, searchController} = require('../contro
 const router = express.Router();
 
 router.get('/view/:id', optionalAuthMiddleware, postController.view);
-router.get('/search/:search_str', optionalAuthMiddleware, searchController.search);
+router.get('/search', optionalAuthMiddleware, searchController.search);
 router.get('/home', postController.home);
 router.get('/popular', postController.popular);
 router.get('/recents', postController.recents);
@@ -16,7 +16,7 @@ router.get('/list/trending', postController.trendingPosts);
 router.get('/list/recents', postController.recentPosts);
 router.get('/list/following/:id', postController.following_posts);
 router.get('/list/keyword/:id', postController.keywordPosts);
-router.get('/list/history/:id', postController.postHistory);
+router.get('/list/history', authMiddleware, postController.postHistory);
 router.post('/comments/store', authMiddleware, commentController.store);
 router.post('/store', authMiddleware, postController.store);
 router.post('/image/upload', authMiddleware, upload.single("image"), postController.imageContentUpload);

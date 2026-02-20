@@ -480,7 +480,7 @@ module.exports = {
   },
   async postHistory(req, res, next) {
     try {
-      let { id } = req.params;
+      let { id } = req.user.id;
       const limit = parseInt(req.query.limit) || 20;
       const cursor = req.query.cursor;
 

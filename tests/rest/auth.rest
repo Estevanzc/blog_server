@@ -1,40 +1,37 @@
 @baseUrl = http://localhost:3000/users
+@json = application/json
 
 ### Register
 POST {{baseUrl}}/register
-Content-Type: application/json
+Content-Type: {{json}}
 
 {
   "name": "Test User",
   "email": "test@email.com",
-  "password": "123456"
+  "password": "123456",
+  "password_confirmation": "123456",
+  "birth": "2008-01-01",
+  "occupation": "Student"
 }
 
 ### Login
-# @name login
 POST {{baseUrl}}/login
-Content-Type: application/json
+Content-Type: {{json}}
 
 {
-  "email": "test@email.com",
-  "password": "123456"
+  "email": "estevan.zimermann@gmail.com",
+  "password": "admin"
 }
 
-@token = {{login.response.body.token}}
+> {%
+  client.global.set("token", response.body.token);
+%}
+# sets the token globally so it can be used by other rest files
 
 ### Recover password
 POST {{baseUrl}}/password/recover
-Content-Type: application/json
+Content-Type: {{json}}
 
 {
-  "email": "test@email.com"
-}
-
-### Update password
-POST {{baseUrl}}/password/update
-Content-Type: application/json
-
-{
-  "token": "RECOVERY_TOKEN",
-  "password": "newpassword"
+  "email": "estevan.zimermann@gmail.com"
 }

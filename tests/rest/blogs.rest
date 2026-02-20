@@ -1,42 +1,22 @@
-@baseUrl = http://localhost:3000/posts
+@baseUrl = http://localhost:3000/users
 @json = application/json
 @token = {{token}}
 
-### Get post
-GET {{baseUrl}}/view/1
+### Get blog
+GET {{baseUrl}}/1
 
-### Get search
-GET {{baseUrl}}/search
+### Get followers
+GET {{baseUrl}}/followers/1
 
-### Get home
-GET {{baseUrl}}/home
+### Get members
+GET {{baseUrl}}/members/1
 
-### Get popular
-GET {{baseUrl}}/popular
+### Get posts
+GET {{baseUrl}}/posts/1
 
-### Get recents
-GET {{baseUrl}}/recents
-
-### Get topics
-GET {{baseUrl}}/topics
-
-### Get trending list
-GET {{baseUrl}}/list/trending
-
-### Get recents list
-GET {{baseUrl}}/list/recents
-
-### Get user posts
-GET {{baseUrl}}/list/following/1
-
-### Get user keywords
-GET {{baseUrl}}/list/keyword/1
-
-### Get user post history
-GET {{baseUrl}}/list/history
+### Get requests
+GET {{baseUrl}}/requests/1
 Authorization: Bearer {{token}}
-
-
 
 ### Delete notification
 DELETE {{baseUrl}}/notifications/destroy/1

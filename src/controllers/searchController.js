@@ -11,7 +11,7 @@ const { Op, Sequelize, where } = require('sequelize');
 module.exports = {
   async search(req, res, next) {
     try {
-      let { search_str } = req.params
+      let { search_str } = req.query
       let user_id = req.user?.id ?? null;
       if (!search_str || !search_str.trim()) {
         return res.status(400).json({
