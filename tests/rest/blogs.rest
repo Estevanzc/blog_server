@@ -18,26 +18,41 @@ GET {{baseUrl}}/posts/1
 GET {{baseUrl}}/requests/1
 Authorization: Bearer {{token}}
 
-### Delete notification
-DELETE {{baseUrl}}/notifications/destroy/1
+### Post Send membership request
+POST {{baseUrl}}/members/request/send/1
 Authorization: Bearer {{token}}
 
-### Store preferences
-POST {{baseUrl}}/preferences/store
+### Post Accept membership request
+POST {{baseUrl}}/members/request/accept/1
+Authorization: Bearer {{token}}
+
+### Post Follow/Unfollow blog
+POST {{baseUrl}}/follow/1
+Authorization: Bearer {{token}}
+
+### Register Blog
+POST {{baseUrl}}/store
 Authorization: Bearer {{token}}
 Content-Type: {{json}}
 
 {
-  "dark_mode": true
+  "name": "Blog name test",
+  "subname": "blog subname test",
+  "description": "lorem ipsum random blog test description",
+  "category": "Technology"
 }
 
-### Update user
+### Update
 PUT {{baseUrl}}/update
 Authorization: Bearer {{token}}
 Content-Type: {{json}}
 
 {
-  "name": "Updated Name"
+  "id": 1,
+  "name": "Blog update test",
+  "subname": "Blog subname update test",
+  "description": "Blog description update test",
+  "category": "Category_test"
 }
 
 ### Update photo
@@ -46,3 +61,18 @@ Authorization: Bearer {{token}}
 Content-Type: multipart/form-data
 
 < ./avatar.png
+
+### Update photo
+PUT {{baseUrl}}/update/banner
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data
+
+< ./avatar.png
+
+### Delete member
+DELETE {{baseUrl}}/members/destroy/1
+Authorization: Bearer {{token}}
+
+### Delete blog
+DELETE {{baseUrl}}/destroy/1
+Authorization: Bearer {{token}}

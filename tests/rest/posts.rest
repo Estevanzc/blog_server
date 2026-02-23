@@ -37,32 +37,67 @@ GET {{baseUrl}}/list/history
 Authorization: Bearer {{token}}
 
 
-
-### Delete notification
-DELETE {{baseUrl}}/notifications/destroy/1
-Authorization: Bearer {{token}}
-
-### Store preferences
-POST {{baseUrl}}/preferences/store
+### Comments store
+POST {{baseUrl}}/comments/store
 Authorization: Bearer {{token}}
 Content-Type: {{json}}
 
 {
-  "dark_mode": true
+  "content": "Comment test",
+  "post_id": 1
 }
 
-### Update user
+### Post store
+POST {{baseUrl}}/store
+Authorization: Bearer {{token}}
+Content-Type: {{json}}
+
+{
+  "title": "Title test",
+  "subtitle": "Subtitle test",
+  "summary": "summary test",
+  "blog_id": 1,
+  "contents": [],
+  "tags": []
+}
+
+
+### Post like/unlike
+POST {{baseUrl}}/like/1
+Authorization: Bearer {{token}}
+
+### Post image pre-upload
+POST {{baseUrl}}/image/upload
+Authorization: Bearer {{token}}
+
+### Comment update
+PUT {{baseUrl}}/comments/update
+Authorization: Bearer {{token}}
+Content-Type: {{json}}
+
+{
+  "id": 1,
+  "content": "Comment update test",
+}
+
+### Post update
 PUT {{baseUrl}}/update
 Authorization: Bearer {{token}}
 Content-Type: {{json}}
 
 {
-  "name": "Updated Name"
+  "post_id": 1,
+  "title": "Title test",
+  "subtitle": "Subtitle test",
+  "summary": "Summary test",
+  "contents": [],
+  "tags": []
 }
 
-### Update photo
-PUT {{baseUrl}}/update/photo
+### Delete post comment
+DELETE {{baseUrl}}/comments/destroy/1
 Authorization: Bearer {{token}}
-Content-Type: multipart/form-data
 
-< ./avatar.png
+### Post delete
+DELETE {{baseUrl}}/destroy/1
+Authorization: Bearer {{token}}
