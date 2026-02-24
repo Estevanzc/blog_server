@@ -76,7 +76,7 @@ Content-Type: {{json}}
 
 {
   "id": 1,
-  "content": "Comment update test",
+  "content": "Comment update test"
 }
 
 ### Post update

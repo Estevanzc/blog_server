@@ -38,5 +38,5 @@ Content-Type: {{json}}
 {
   "password": "admin2",
   "password_confirmation": "admin2",
-  "token": "29c70bf52e6cda5ca2b0df366956b898e1e33c70",//manually added token
+  "token": "2861abf676b2562ef56265c254c744a3623b4006"
 }
