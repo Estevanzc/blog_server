@@ -1,7 +1,7 @@
-@baseUrl = http://localhost:3000/users
+@baseUrl = http://localhost:3000/blogs
 @json = application/json
-@token = {{token}}
-
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzcxOTM3NjU4LCJleHAiOjE3NzIwMjQwNTh9.ZY16KRZlKMUi4BoUPoW398L1CQpEbZTnWMMscn5rYK0
+# manually setted token for authentication
 ### Get blog
 GET {{baseUrl}}/1
 
@@ -42,7 +42,7 @@ Content-Type: {{json}}
   "category": "Technology"
 }
 
-### Update
+### Update blog
 PUT {{baseUrl}}/update
 Authorization: Bearer {{token}}
 Content-Type: {{json}}
@@ -62,7 +62,7 @@ Content-Type: multipart/form-data
 
 < ./avatar.png
 
-### Update photo
+### Update banner
 PUT {{baseUrl}}/update/banner
 Authorization: Bearer {{token}}
 Content-Type: multipart/form-data

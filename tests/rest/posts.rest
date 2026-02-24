@@ -1,12 +1,12 @@
 @baseUrl = http://localhost:3000/posts
 @json = application/json
-@token = {{token}}
-
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzcxOTM3NjU4LCJleHAiOjE3NzIwMjQwNTh9.ZY16KRZlKMUi4BoUPoW398L1CQpEbZTnWMMscn5rYK0
+# manually setted token for authentication
 ### Get post
 GET {{baseUrl}}/view/1
 
 ### Get search
-GET {{baseUrl}}/search
+GET {{baseUrl}}/search?search_str=tech
 
 ### Get home
 GET {{baseUrl}}/home
@@ -35,7 +35,6 @@ GET {{baseUrl}}/list/keyword/1
 ### Get user post history
 GET {{baseUrl}}/list/history
 Authorization: Bearer {{token}}
-
 
 ### Comments store
 POST {{baseUrl}}/comments/store

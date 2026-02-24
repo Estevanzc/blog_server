@@ -23,15 +23,20 @@ Content-Type: {{json}}
   "password": "admin"
 }
 
-> {%
-  client.global.set("token", response.body.token);
-%}
-# sets the token globally so it can be used by other rest files
-
 ### Recover password
 POST {{baseUrl}}/password/recover
 Content-Type: {{json}}
 
 {
   "email": "estevan.zimermann@gmail.com"
+}
+
+### Update password
+POST {{baseUrl}}/password/update
+Content-Type: {{json}}
+
+{
+  "password": "admin2",
+  "password_confirmation": "admin2",
+  "token": "29c70bf52e6cda5ca2b0df366956b898e1e33c70",//manually added token
 }
