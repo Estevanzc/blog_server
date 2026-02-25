@@ -40,7 +40,7 @@ Authorization: Bearer {{token}}
 Content-Type: {{json}}
 
 {
-  "dark_mode": true
+  "preferences": ["a", "b", "c", "test"]
 }
 
 ### User searches
