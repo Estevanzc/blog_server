@@ -153,6 +153,8 @@ module.exports = {
   },
   async updatePhoto(req, res, next) {
     try {
+      console.log('file:', req.file);
+      console.log('body:', req.body);
       const user_id = req.user.id;
       const user = await User.findByPk(user_id);
       if (!req.file) {

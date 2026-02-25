@@ -1194,6 +1194,42 @@ module.exports = {
       next(err)
     }
   },
+  async updateBanner(req, res, next) {
+    try {
+      let { id } = req.body;
+      let post = await Post.findByPk(id);
+
+      if (!post) {
+        return res.status(404).json({ error: 'post not found' });
+      }
+      const admin_member = await Member.findOne({
+        where: {
+          user_id: req.user.id,
+          blog_id: post.blog_id,
+          role: 1
+        }
+      });
+      if (!admin_member) {
+        return res.status(403).json({
+          error: 'Access denied'
+        });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      await controller.imageUpload({
+        model: post,
+        file: req.file,
+        field: 'banner'
+      });
+
+      return res.status(202).send();
+    } catch (err) {
+      next(err);
+    }
+  },
   async update(req, res, next) {
     let transaction;
 

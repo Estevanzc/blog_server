@@ -22,6 +22,7 @@ router.post('/store', authMiddleware, postController.store);
 router.post('/like/:id', authMiddleware, postController.like);
 router.post('/image/upload', authMiddleware, upload.single("image"), postController.imageContentUpload);
 router.put('/update', authMiddleware, postController.update);
+router.put('/update/banner', authMiddleware, upload.single("banner"), postController.updateBanner);
 router.put('/comments/update', authMiddleware, commentController.update);
 router.delete('/comments/destroy/:id', authMiddleware, commentController.destroy);
 router.delete('/destroy/:id', authMiddleware, postController.destroy);

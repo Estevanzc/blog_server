@@ -1,6 +1,6 @@
 @baseUrl = http://localhost:3000/posts
 @json = application/json
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzcxOTM3NjU4LCJleHAiOjE3NzIwMjQwNTh9.ZY16KRZlKMUi4BoUPoW398L1CQpEbZTnWMMscn5rYK0
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzcyMDIyODY2LCJleHAiOjE3NzIxMDkyNjZ9.-oCXfT7plWJRjUm4FH1Xw8mKhnE49loIoZ1PPOba0VQ
 # manually setted token for authentication
 ### Get post
 GET {{baseUrl}}/view/1
@@ -46,27 +46,8 @@ Content-Type: {{json}}
   "post_id": 1
 }
 
-### Post store
-POST {{baseUrl}}/store
-Authorization: Bearer {{token}}
-Content-Type: {{json}}
-
-{
-  "title": "Title test",
-  "subtitle": "Subtitle test",
-  "summary": "summary test",
-  "blog_id": 1,
-  "contents": [],
-  "tags": []
-}
-
-
 ### Post like/unlike
 POST {{baseUrl}}/like/1
-Authorization: Bearer {{token}}
-
-### Post image pre-upload
-POST {{baseUrl}}/image/upload
 Authorization: Bearer {{token}}
 
 ### Comment update

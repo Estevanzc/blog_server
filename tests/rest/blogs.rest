@@ -1,6 +1,6 @@
 @baseUrl = http://localhost:3000/blogs
 @json = application/json
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzcxOTM3NjU4LCJleHAiOjE3NzIwMjQwNTh9.ZY16KRZlKMUi4BoUPoW398L1CQpEbZTnWMMscn5rYK0
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzcyMDIyODY2LCJleHAiOjE3NzIxMDkyNjZ9.-oCXfT7plWJRjUm4FH1Xw8mKhnE49loIoZ1PPOba0VQ
 # manually setted token for authentication
 ### Get blog
 GET {{baseUrl}}/1
@@ -54,20 +54,6 @@ Content-Type: {{json}}
   "description": "Blog description update test",
   "category": "Category_test"
 }
-
-### Update photo
-PUT {{baseUrl}}/update/photo
-Authorization: Bearer {{token}}
-Content-Type: multipart/form-data
-
-< ./avatar.png
-
-### Update banner
-PUT {{baseUrl}}/update/banner
-Authorization: Bearer {{token}}
-Content-Type: multipart/form-data
-
-< ./avatar.png
 
 ### Delete member
 DELETE {{baseUrl}}/members/destroy/1

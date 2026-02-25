@@ -1,6 +1,6 @@
 @baseUrl = http://localhost:3000/users
 @json = application/json
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzcxOTM3NjU4LCJleHAiOjE3NzIwMjQwNTh9.ZY16KRZlKMUi4BoUPoW398L1CQpEbZTnWMMscn5rYK0
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzcyMDIyODY2LCJleHAiOjE3NzIxMDkyNjZ9.-oCXfT7plWJRjUm4FH1Xw8mKhnE49loIoZ1PPOba0VQ
 # manually setted token for authentication
 ### Get profile
 GET {{baseUrl}}/profile/1
@@ -59,20 +59,6 @@ Content-Type: {{json}}
 {
   "name": "Updated Name"
 }
-
-### Update photo
-PUT {{baseUrl}}/update/photo
-Authorization: Bearer {{token}}
-Content-Type: multipart/form-data
-
-< ./avatar.png
-
-### Update banner
-PUT {{baseUrl}}/update/banner
-Authorization: Bearer {{token}}
-Content-Type: multipart/form-data
-
-< ./banner.png
 
 ### Delete user
 DELETE {{baseUrl}}/1
